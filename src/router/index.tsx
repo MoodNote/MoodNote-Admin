@@ -3,6 +3,8 @@ import ProtectedRoute from './ProtectedRoute'
 import MainLayout from '@/components/layout/MainLayout'
 import LoginPage from '@/pages/Login/LoginPage'
 import DashboardPage from '@/pages/Dashboard/DashboardPage'
+import UsersPage from '@/pages/Users/UsersPage'
+import NotificationsPage from '@/pages/Notifications/NotificationsPage'
 import NotFoundPage from '@/pages/NotFound/NotFoundPage'
 
 const router = createBrowserRouter([
@@ -23,6 +25,14 @@ const router = createBrowserRouter([
           {
             path: 'dashboard',
             element: <DashboardPage />,
+          },
+          {
+            path: 'users',
+            element: <UsersPage />,
+          },
+          {
+            path: 'notifications',
+            element: <NotificationsPage />,
           },
         ],
       },

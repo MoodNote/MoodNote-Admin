@@ -7,8 +7,12 @@ import type { User } from '@/types/auth'
 import './LoginPage.css'
 
 interface LoginResponse {
-  token: string
-  user: User
+  success: boolean
+  message: string
+  data: {
+    accessToken: string
+    user: User
+  }
 }
 
 export default function LoginPage() {
@@ -25,11 +29,11 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const { data } = await api.post<LoginResponse>('/auth/login', {
+      const { data } = await api.post<LoginResponse>('/admin/auth/login', {
         email,
         password,
       })
-      login(data.token, data.user)
+      login(data.data.accessToken, data.data.user)
       navigate('/dashboard', { replace: true })
     } catch {
       setError('Invalid email or password. Please try again.')
