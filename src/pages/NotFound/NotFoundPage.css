@@ -1,45 +1,58 @@
 .not-found {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: var(--space-4);
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	padding: var(--space-4);
+	animation: app-fade-in-up var(--duration-base) var(--ease-decelerate);
 }
 
 .not-found__code {
-  font-size: 96px;
-  font-weight: 800;
-  color: var(--color-primary);
-  line-height: 1;
-  margin-bottom: var(--space-4);
+	font-size: 96px;
+	font-weight: 800;
+	color: var(--color-primary);
+	line-height: 1;
+	margin-bottom: var(--space-4);
+	animation: app-soft-pulse var(--duration-slow) var(--ease-emphasized);
 }
 
 .not-found__title {
-  font-size: var(--font-size-3xl);
-  font-weight: 700;
-  color: var(--color-text);
-  margin-bottom: var(--space-4);
+	font-size: var(--font-size-3xl);
+	font-weight: 700;
+	color: var(--color-text);
+	margin-bottom: var(--space-4);
 }
 
 .not-found__message {
-  font-size: var(--font-size-base);
-  color: var(--color-text-muted);
-  max-width: 400px;
-  margin-bottom: var(--space-8);
+	font-size: var(--font-size-base);
+	color: var(--color-text-muted);
+	max-width: 400px;
+	margin-bottom: var(--space-8);
 }
 
 .not-found__btn {
-  padding: var(--space-3) var(--space-6);
-  background-color: var(--color-primary);
-  color: #ffffff;
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  transition: background-color var(--transition-fast);
+	padding: var(--space-3) var(--space-6);
+	background-color: var(--color-primary);
+	color: #ffffff;
+	border-radius: var(--radius-md);
+	font-size: var(--font-size-sm);
+	font-weight: 600;
+	transform: translateY(0);
+	transition:
+		background-color var(--transition-fast),
+		transform var(--transition-fast),
+		box-shadow var(--transition-fast);
 }
 
 .not-found__btn:hover {
-  background-color: var(--color-primary-hover);
+	background-color: var(--color-primary-hover);
+	transform: translateY(var(--hover-lift-y));
+	box-shadow: var(--shadow-md);
+}
+
+.not-found__btn:focus-visible {
+	outline: none;
+	box-shadow: var(--shadow-focus);
 }

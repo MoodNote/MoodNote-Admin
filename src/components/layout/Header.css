@@ -1,48 +1,61 @@
 .header {
-  height: var(--header-height);
-  background-color: var(--color-bg-card);
-  border-bottom: 1px solid var(--color-border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 var(--space-6);
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  box-shadow: var(--shadow-sm);
+	height: var(--header-height);
+	background-color: var(--color-bg-card);
+	border-bottom: 1px solid var(--color-border);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 var(--space-6);
+	position: sticky;
+	top: 0;
+	z-index: 50;
+	box-shadow: var(--shadow-sm);
+	animation: app-slide-down var(--duration-base) var(--ease-decelerate);
 }
 
 .header__title {
-  font-size: var(--font-size-lg);
-  font-weight: 600;
-  color: var(--color-text);
+	font-size: var(--font-size-lg);
+	font-weight: 600;
+	color: var(--color-text);
 }
 
 .header__right {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
+	display: flex;
+	align-items: center;
+	gap: var(--space-4);
 }
 
 .header__user-name {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  font-weight: 500;
+	font-size: var(--font-size-sm);
+	color: var(--color-text-muted);
+	font-weight: 500;
 }
 
 .header__logout-btn {
-  padding: var(--space-2) var(--space-4);
-  background-color: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--color-text);
-  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+	padding: var(--space-2) var(--space-4);
+	background-color: transparent;
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	font-size: var(--font-size-sm);
+	font-weight: 500;
+	color: var(--color-text);
+	transform: translateY(0);
+	transition:
+		background-color var(--transition-fast),
+		border-color var(--transition-fast),
+		color var(--transition-fast),
+		transform var(--transition-fast),
+		box-shadow var(--transition-fast);
 }
 
 .header__logout-btn:hover {
-  background-color: var(--color-danger);
-  border-color: var(--color-danger);
-  color: #ffffff;
+	background-color: var(--color-danger);
+	border-color: var(--color-danger);
+	color: #ffffff;
+	transform: translateY(var(--hover-lift-y));
+}
+
+.header__logout-btn:focus-visible {
+	outline: none;
+	box-shadow: var(--shadow-focus);
 }

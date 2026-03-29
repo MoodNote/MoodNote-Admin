@@ -24,6 +24,22 @@ export const storage = {
     localStorage.removeItem(key)
   },
 
+  getString(key: string): string | null {
+    return localStorage.getItem(key)
+  },
+
+  setString(key: string, value: string): void {
+    try {
+      localStorage.setItem(key, value)
+    } catch {
+      // Silently fail (e.g. private browsing storage quota exceeded)
+    }
+  },
+
+  removeMany(keys: string[]): void {
+    keys.forEach((key) => localStorage.removeItem(key))
+  },
+
   clear(): void {
     localStorage.clear()
   },

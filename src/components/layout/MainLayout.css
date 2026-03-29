@@ -1,18 +1,19 @@
 .main-layout {
-  display: flex;
-  min-height: 100vh;
+	display: flex;
+	min-height: 100vh;
 }
 
 .main-layout__body {
-  flex: 1;
-  margin-left: var(--sidebar-width);
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+	flex: 1;
+	margin-left: var(--sidebar-width);
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
 }
 
 .main-layout__content {
-  flex: 1;
-  padding: var(--space-6);
-  background-color: var(--color-bg);
+	flex: 1;
+	padding: var(--space-6);
+	background-color: var(--color-bg);
+	animation: app-fade-in-up var(--duration-slow) var(--ease-decelerate);
 }
