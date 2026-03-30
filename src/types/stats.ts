@@ -3,6 +3,17 @@ export interface TrendPoint {
 	count: number;
 }
 
+export interface EmotionDistributionItem {
+	emotion: string;
+	count: number;
+	percentage?: number;
+}
+
+export interface TopKeyword {
+	keyword: string;
+	count: number;
+}
+
 export interface UsersAnalytics {
 	total: number;
 	active: number;
@@ -13,6 +24,10 @@ export interface UsersAnalytics {
 		thisMonth: number;
 	};
 	trend: TrendPoint[];
+	// Extended fields (SRS FR-25 — optional until BE implements)
+	dau?: number;
+	mau?: number;
+	retentionRate?: number;
 }
 
 export interface EntriesAnalysisStatus {
@@ -32,6 +47,9 @@ export interface EntriesAnalytics {
 	trend: TrendPoint[];
 	byAnalysisStatus: EntriesAnalysisStatus;
 	avgWordCount: number;
+	// Extended fields (SRS FR-25 — optional until BE implements)
+	emotionDistribution?: EmotionDistributionItem[];
+	topKeywords?: TopKeyword[];
 }
 
 export interface AdminStatsData {
