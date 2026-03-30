@@ -1,12 +1,42 @@
 import { useState, useEffect, useRef } from "react";
 import { usersService } from "@/services";
-import type { AdminUser, Pagination } from "@/types/user";
+import type { AdminUser, AdminUserDetail, Pagination } from "@/types/user";
 import { formatDate, formatRelativeTime } from "@/utils/format";
 import { cn } from "@/utils/cn";
 import { getErrorMessage } from "@/utils/error";
 import "./UsersPage.css";
 
 type ActiveFilter = "" | "true" | "false";
+
+function getInitials(name: string): string {
+	return name
+		.split(" ")
+		.filter(Boolean)
+		.slice(0, 2)
+		.map((n) => n[0].toUpperCase())
+		.join("");
+}
+
+function buildPageNumbers(
+	currentPage: number,
+	totalPages: number,
+): (number | "...")[] {
+	if (totalPages <= 7) {
+		return Array.from({ length: totalPages }, (_, i) => i + 1);
+	}
+	const pages: (number | "...")[] = [1];
+	if (currentPage > 3) pages.push("...");
+	for (
+		let i = Math.max(2, currentPage - 1);
+		i <= Math.min(totalPages - 1, currentPage + 1);
+		i++
+	) {
+		pages.push(i);
+	}
+	if (currentPage < totalPages - 2) pages.push("...");
+	pages.push(totalPages);
+	return pages;
+}
 
 export default function UsersPage() {
 	const [users, setUsers] = useState<AdminUser[]>([]);
@@ -20,7 +50,12 @@ export default function UsersPage() {
 	const [page, setPage] = useState(1);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
-	const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+	const [selectedUser, setSelectedUser] = useState<AdminUserDetail | null>(
+		null,
+	);
+	const [modalLoading, setModalLoading] = useState(false);
+	const [modalError, setModalError] = useState("");
+	const [statusUpdating, setStatusUpdating] = useState(false);
 	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const fetchUsers = async (
@@ -122,6 +157,85 @@ export default function UsersPage() {
 		setPage(1);
 	};
 
+	const handleOpenUserDetails = async (user: AdminUser) => {
+		setSelectedUser({ ...user, streakDays: 0 });
+		setModalError("");
+		setModalLoading(true);
+
+		try {
+			const detail = await usersService.getUserDetail(user.id);
+			setSelectedUser(detail);
+		} catch (error: unknown) {
+			setModalError(
+				getErrorMessage(
+					error,
+					"Failed to load user details. Please try again.",
+				),
+			);
+		} finally {
+			setModalLoading(false);
+		}
+	};
+
+	const handleToggleUserStatus = async () => {
+		if (!selectedUser) return;
+
+		const nextIsActive = !selectedUser.isActive;
+		let reason: string | undefined;
+
+		if (!nextIsActive) {
+			const reasonInput = window
+				.prompt("Reason for locking this account (optional)")
+				?.trim();
+			if (reasonInput === null) {
+				return;
+			}
+			reason = reasonInput || undefined;
+		}
+
+		setStatusUpdating(true);
+		setModalError("");
+
+		try {
+			await usersService.updateUserStatus(
+				selectedUser.id,
+				nextIsActive,
+				reason,
+			);
+
+			setSelectedUser((prev) =>
+				prev
+					? {
+							...prev,
+							isActive: nextIsActive,
+						}
+					: prev,
+			);
+			setUsers((prev) =>
+				prev.map((user) =>
+					user.id === selectedUser.id
+						? {
+								...user,
+								isActive: nextIsActive,
+							}
+						: user,
+				),
+			);
+		} catch (error: unknown) {
+			setModalError(
+				getErrorMessage(
+					error,
+					"Failed to update user status. Please try again.",
+				),
+			);
+		} finally {
+			setStatusUpdating(false);
+		}
+	};
+
+	const pageNumbers =
+		pagination ? buildPageNumbers(page, pagination.totalPages) : [];
+
 	return (
 		<div className="users-page">
 			<div className="users-page__header">
@@ -158,6 +272,7 @@ export default function UsersPage() {
 					value={createdFrom}
 					onChange={(e) => handleCreatedFromChange(e.target.value)}
 					aria-label="Created from date"
+					title="Joined from"
 				/>
 
 				<input
@@ -166,6 +281,7 @@ export default function UsersPage() {
 					value={createdTo}
 					onChange={(e) => handleCreatedToChange(e.target.value)}
 					aria-label="Created to date"
+					title="Joined to"
 				/>
 
 				<input
@@ -228,20 +344,41 @@ export default function UsersPage() {
 								<td
 									colSpan={8}
 									className="users-table__empty">
-									No users found.
+									<div className="empty-state">
+										<span className="empty-state__icon">
+											👤
+										</span>
+										<span className="empty-state__title">
+											No users found
+										</span>
+										<span className="empty-state__desc">
+											Try adjusting your filters or
+											search query
+										</span>
+									</div>
 								</td>
 							</tr>
 						) : (
 							users.map((user) => (
-								<tr key={user.id}>
+								<tr
+									key={user.id}
+									onClick={() => handleOpenUserDetails(user)}>
 									<td>
 										<div className="user-cell">
-											<span className="user-cell__name">
-												{user.name}
-											</span>
-											<span className="user-cell__meta">
-												@{user.username} · {user.email}
-											</span>
+											<div
+												className="user-avatar"
+												aria-hidden="true">
+												{getInitials(user.name)}
+											</div>
+											<div className="user-cell__info">
+												<span className="user-cell__name">
+													{user.name}
+												</span>
+												<span className="user-cell__meta">
+													@{user.username} ·{" "}
+													{user.email}
+												</span>
+											</div>
 										</div>
 									</td>
 									<td>
@@ -258,8 +395,8 @@ export default function UsersPage() {
 													: "badge--inactive",
 											)}>
 											{user.isActive
-												? "Active"
-												: "Inactive"}
+												? "● Active"
+												: "○ Inactive"}
 										</span>
 									</td>
 									<td>
@@ -271,12 +408,12 @@ export default function UsersPage() {
 													: "badge--unverified",
 											)}>
 											{user.isEmailVerified
-												? "Verified"
+												? "✓ Verified"
 												: "Unverified"}
 										</span>
 									</td>
 									<td className="users-table__num">
-										{user.entryCount}
+										{user.entryCount.toLocaleString()}
 									</td>
 									<td className="users-table__date">
 										{user.lastLoginAt
@@ -292,9 +429,10 @@ export default function UsersPage() {
 										<button
 											type="button"
 											className="users-table__details-btn"
-											onClick={() =>
-												setSelectedUser(user)
-											}>
+											onClick={(e) => {
+												e.stopPropagation();
+												handleOpenUserDetails(user);
+											}}>
 											Details
 										</button>
 									</td>
@@ -310,19 +448,43 @@ export default function UsersPage() {
 					<button
 						className="users-pagination__btn"
 						disabled={page <= 1}
-						onClick={() => setPage((p) => p - 1)}>
-						Previous
+						onClick={() => setPage((p) => p - 1)}
+						aria-label="Previous page">
+						←
 					</button>
-					<span className="users-pagination__info">
-						Page {pagination.page} of {pagination.totalPages} (
-						{pagination.total} total)
-					</span>
+
+					{pageNumbers.map((p, idx) =>
+						p === "..." ? (
+							<span
+								key={`ellipsis-${idx}`}
+								className="users-pagination__ellipsis">
+								…
+							</span>
+						) : (
+							<button
+								key={p}
+								className={cn(
+									"users-pagination__btn",
+									p === page &&
+										"users-pagination__btn--active",
+								)}
+								onClick={() => setPage(p)}>
+								{p}
+							</button>
+						),
+					)}
+
 					<button
 						className="users-pagination__btn"
 						disabled={page >= pagination.totalPages}
-						onClick={() => setPage((p) => p + 1)}>
-						Next
+						onClick={() => setPage((p) => p + 1)}
+						aria-label="Next page">
+						→
 					</button>
+
+					<span className="users-pagination__info">
+						{pagination.total.toLocaleString()} users
+					</span>
 				</div>
 			)}
 
@@ -333,8 +495,21 @@ export default function UsersPage() {
 					<div
 						className="users-modal"
 						onClick={(e) => e.stopPropagation()}>
+						{/* Header */}
 						<div className="users-modal__header">
-							<h3 className="users-modal__title">User details</h3>
+							<div className="users-modal__header-left">
+								<div className="users-modal__avatar">
+									{getInitials(selectedUser.name)}
+								</div>
+								<div>
+									<div className="users-modal__name">
+										{selectedUser.name}
+									</div>
+									<div className="users-modal__email">
+										{selectedUser.email}
+									</div>
+								</div>
+							</div>
 							<button
 								type="button"
 								className="users-modal__close"
@@ -344,75 +519,143 @@ export default function UsersPage() {
 							</button>
 						</div>
 
-						<div className="users-modal__content">
-							<div className="users-modal__row">
-								<span>Email</span>
-								<strong>{selectedUser.email}</strong>
+						{/* Body */}
+						<div className="users-modal__body">
+							<div className="users-modal__grid">
+								<div className="users-modal__card">
+									<div className="users-modal__card-label">
+										Username
+									</div>
+									<div className="users-modal__card-value">
+										@{selectedUser.username}
+									</div>
+								</div>
+								<div className="users-modal__card">
+									<div className="users-modal__card-label">
+										Role
+									</div>
+									<div className="users-modal__card-value">
+										{selectedUser.role}
+									</div>
+								</div>
+								<div className="users-modal__card">
+									<div className="users-modal__card-label">
+										Status
+									</div>
+									<div className="users-modal__card-value">
+										<span
+											className={cn(
+												"badge",
+												selectedUser.isActive
+													? "badge--active"
+													: "badge--inactive",
+											)}>
+											{selectedUser.isActive
+												? "● Active"
+												: "○ Inactive"}
+										</span>
+									</div>
+								</div>
+								<div className="users-modal__card">
+									<div className="users-modal__card-label">
+										Email Verified
+									</div>
+									<div className="users-modal__card-value">
+										<span
+											className={cn(
+												"badge",
+												selectedUser.isEmailVerified
+													? "badge--verified"
+													: "badge--unverified",
+											)}>
+											{selectedUser.isEmailVerified
+												? "✓ Verified"
+												: "Unverified"}
+										</span>
+									</div>
+								</div>
+								<div className="users-modal__card">
+									<div className="users-modal__card-label">
+										Total Entries
+									</div>
+									<div className="users-modal__card-value">
+										{selectedUser.entryCount.toLocaleString()}
+									</div>
+								</div>
+								<div className="users-modal__card">
+									<div className="users-modal__card-label">
+										Streak Days
+									</div>
+									<div
+										className={cn(
+											"users-modal__card-value",
+											modalLoading &&
+												"users-modal__card-value--loading",
+										)}>
+										{modalLoading
+											? "Loading..."
+											: `${selectedUser.streakDays} days`}
+									</div>
+								</div>
+								<div className="users-modal__card">
+									<div className="users-modal__card-label">
+										Joined
+									</div>
+									<div className="users-modal__card-value">
+										{formatDate(selectedUser.createdAt)}
+									</div>
+								</div>
+								<div className="users-modal__card">
+									<div className="users-modal__card-label">
+										Last Login
+									</div>
+									<div className="users-modal__card-value">
+										{selectedUser.lastLoginAt
+											? formatRelativeTime(
+													selectedUser.lastLoginAt,
+												)
+											: "—"}
+									</div>
+								</div>
 							</div>
-							<div className="users-modal__row">
-								<span>Username</span>
-								<strong>@{selectedUser.username}</strong>
+
+							{/* Emotion Distribution — placeholder */}
+							<div className="users-modal__section-title">
+								Emotion Distribution
 							</div>
-							<div className="users-modal__row">
-								<span>Name</span>
-								<strong>{selectedUser.name}</strong>
+							<div className="emotion-dist">
+								<p className="emotion-dist__empty">
+									Emotion distribution data will appear here
+									once available from the API.
+								</p>
 							</div>
-							<div className="users-modal__row">
-								<span>Role</span>
-								<strong>{selectedUser.role}</strong>
-							</div>
-							<div className="users-modal__row">
-								<span>Status</span>
-								<strong>
-									{selectedUser.isActive
-										? "Active"
-										: "Inactive"}
-								</strong>
-							</div>
-							<div className="users-modal__row">
-								<span>Email verified</span>
-								<strong>
-									{selectedUser.isEmailVerified
-										? "Yes"
-										: "No"}
-								</strong>
-							</div>
-							<div className="users-modal__row">
-								<span>Total entries</span>
-								<strong>{selectedUser.entryCount}</strong>
-							</div>
-							<div className="users-modal__row">
-								<span>Joined</span>
-								<strong>
-									{formatDate(selectedUser.createdAt)}
-								</strong>
-							</div>
-							<div className="users-modal__row">
-								<span>Last login</span>
-								<strong>
-									{selectedUser.lastLoginAt
-										? formatRelativeTime(
-												selectedUser.lastLoginAt,
-											)
-										: "—"}
-								</strong>
-							</div>
+
+							{modalError && (
+								<p className="users-modal__note--error">
+									{modalError}
+								</p>
+							)}
 						</div>
 
-						<p className="users-modal__note">
-							Emotion distribution and lock/unlock actions depend
-							on additional backend endpoints not exposed in
-							current API specs.
-						</p>
-
+						{/* Actions */}
 						<div className="users-modal__actions">
 							<button
 								type="button"
-								className="users-modal__action-btn"
-								disabled>
+								className={cn(
+									"users-modal__action-btn",
+									selectedUser.isActive
+										? "users-modal__action-btn--lock"
+										: "users-modal__action-btn--unlock",
+								)}
+								onClick={handleToggleUserStatus}
+								disabled={statusUpdating}>
 								{selectedUser.isActive
-									? "Lock account (pending API)"
-									: "Unlock account (pending API)"}
+									? statusUpdating
+										? "Locking..."
+										: "🔒 Lock account"
+									: statusUpdating
+										? "Unlocking..."
+										: "🔓 Unlock account"}
 							</button>
 						</div>
 					</div>
