@@ -28,7 +28,7 @@ export default function LoginPage() {
 
 		try {
 			const data = await authService.login(email, password);
-			login(data.accessToken, data.user);
+			login(data.accessToken, data.refreshToken, data.user);
 			navigate(ROUTES.DASHBOARD, { replace: true });
 		} catch (error: unknown) {
 			if (isApiError(error)) {

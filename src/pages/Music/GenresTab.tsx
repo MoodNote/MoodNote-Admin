@@ -5,11 +5,27 @@ import type { Genre } from "@/types/music";
 import type { Pagination } from "@/types/user";
 import { formatDate } from "@/utils/format";
 import { getErrorMessage } from "@/utils/error";
+import { cn } from "@/utils/cn";
+
 
 interface ModalState {
 	open: boolean;
 	item: Genre | null;
 }
+
+function buildPageNumbers(
+	currentPage: number,
+	totalPages: number,
+): (number | "...")[] {
+	if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+	const pages: (number | "...")[] = [1];
+	if (currentPage > 3) pages.push("...");
+	for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) pages.push(i);
+	if (currentPage < totalPages - 2) pages.push("...");
+	pages.push(totalPages);
+	return pages;
+}
+
 
 export default function GenresTab() {
 	const [genres, setGenres] = useState<Genre[]>([]);
@@ -224,19 +240,32 @@ export default function GenresTab() {
 					<button
 						className="music-pagination__btn"
 						disabled={page <= 1}
-						onClick={() => setPage((p) => p - 1)}>
-						Previous
+						onClick={() => setPage((p) => p - 1)}
+						aria-label="Previous page">
+						←
 					</button>
-					<span className="music-pagination__info">
-						Page {pagination.page} of {pagination.totalPages} (
-						{pagination.total} total)
-					</span>
+					{buildPageNumbers(page, pagination.totalPages).map((p, idx) =>
+						p === "..." ? (
+							<span key={`e-${idx}`} className="music-pagination__ellipsis">…</span>
+						) : (
+							<button
+								key={p}
+								className={cn("music-pagination__btn", p === page && "music-pagination__btn--active")}
+								onClick={() => setPage(p)}>
+								{p}
+							</button>
+						)
+					)}
 					<button
 						className="music-pagination__btn"
 						disabled={page >= pagination.totalPages}
-						onClick={() => setPage((p) => p + 1)}>
-						Next
+						onClick={() => setPage((p) => p + 1)}
+						aria-label="Next page">
+						→
 					</button>
+					<span className="music-pagination__info">
+						{pagination.total.toLocaleString()} genres
+					</span>
 				</div>
 			)}
 
