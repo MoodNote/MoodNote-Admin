@@ -9,8 +9,8 @@ export interface AuthContextType {
 	user: User | null;
 	token: string | null;
 	isAuthenticated: boolean;
-	login: (token: string, user: User) => void;
-	logout: () => void;
+	login: (token: string, refreshToken: string, user: User) => void;
+	logout: () => Promise<void>;
 }
 
 export interface AdminLoginResponse {
@@ -18,6 +18,16 @@ export interface AdminLoginResponse {
 	message: string;
 	data: {
 		accessToken: string;
+		refreshToken: string;
 		user: User;
+	};
+}
+
+export interface AdminRefreshResponse {
+	success: boolean;
+	message: string;
+	data: {
+		accessToken: string;
+		expiresIn: number;
 	};
 }

@@ -1,11 +1,17 @@
 import axios from "axios";
-import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+import type {
+	AxiosInstance,
+	AxiosRequestConfig,
+	AxiosResponse,
+	AxiosRequestHeaders,
+} from "axios";
 import { API_CONFIG, AUTH_CONFIG, ROUTES } from "@/constants";
 import { parseApiError } from "@/utils/error";
 import { storage } from "@/utils/storage";
 
 class ApiService {
 	private client: AxiosInstance;
+	private refreshPromise: Promise<string | null> | null = null;
 
 	constructor() {
 		this.client = axios.create({
@@ -30,16 +36,40 @@ class ApiService {
 
 		this.client.interceptors.response.use(
 			(response) => response,
-			(error: unknown) => {
+			async (error: unknown) => {
 				const parsedError = parseApiError(error);
 
-				const requestUrl = axios.isAxiosError(error)
-					? error.config?.url
-					: undefined;
-				const isLoginRequest =
-					requestUrl?.includes("/admin/auth/login");
+				if (!axios.isAxiosError(error)) {
+					return Promise.reject(parsedError);
+				}
 
-				if (parsedError.status === 401 && !isLoginRequest) {
+				const originalRequest = error.config;
+				const requestUrl = originalRequest?.url ?? "";
+				const isAuthRequest =
+					requestUrl.includes("/admin/auth/login") ||
+					requestUrl.includes("/admin/auth/refresh") ||
+					requestUrl.includes("/admin/auth/logout");
+
+				if (
+					parsedError.status === 401 &&
+					originalRequest &&
+					!isAuthRequest &&
+					!(originalRequest as AxiosRequestConfig & { _retry?: boolean })
+						._retry
+				) {
+					(originalRequest as AxiosRequestConfig & { _retry?: boolean })._retry =
+						true;
+
+					const refreshedToken = await this.refreshAccessToken();
+					if (refreshedToken) {
+						originalRequest.headers = {
+							...(originalRequest.headers ?? {}),
+							Authorization: `Bearer ${refreshedToken}`,
+						} as AxiosRequestHeaders;
+
+						return this.client.request(originalRequest);
+					}
+
 					this.clearAuthState();
 					window.location.href = ROUTES.LOGIN;
 				}
@@ -49,9 +79,46 @@ class ApiService {
 		);
 	}
 
+	private async refreshAccessToken(): Promise<string | null> {
+		if (!this.refreshPromise) {
+			this.refreshPromise = this.requestRefreshToken();
+		}
+
+		const token = await this.refreshPromise;
+		this.refreshPromise = null;
+		return token;
+	}
+
+	private async requestRefreshToken(): Promise<string | null> {
+		const refreshToken = storage.getString(
+			AUTH_CONFIG.REFRESH_TOKEN_STORAGE_KEY,
+		);
+
+		if (!refreshToken) {
+			return null;
+		}
+
+		try {
+			const response = await this.client.post<{
+				success: boolean;
+				message: string;
+				data: { accessToken: string; expiresIn: number };
+			}>("/admin/auth/refresh", {
+				refreshToken,
+			});
+
+			const newAccessToken = response.data.data.accessToken;
+			storage.setString(AUTH_CONFIG.TOKEN_STORAGE_KEY, newAccessToken);
+			return newAccessToken;
+		} catch {
+			return null;
+		}
+	}
+
 	private clearAuthState() {
 		storage.removeMany([
 			AUTH_CONFIG.TOKEN_STORAGE_KEY,
+			AUTH_CONFIG.REFRESH_TOKEN_STORAGE_KEY,
 			AUTH_CONFIG.USER_STORAGE_KEY,
 		]);
 	}

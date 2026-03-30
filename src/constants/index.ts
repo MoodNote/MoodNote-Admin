@@ -5,6 +5,7 @@ export const API_CONFIG = {
 
 export const AUTH_CONFIG = {
 	TOKEN_STORAGE_KEY: "token",
+	REFRESH_TOKEN_STORAGE_KEY: "refreshToken",
 	USER_STORAGE_KEY: "user",
 };
 

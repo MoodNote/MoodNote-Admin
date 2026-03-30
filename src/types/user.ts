@@ -11,6 +11,10 @@ export interface AdminUser {
   entryCount: number
 }
 
+export interface AdminUserDetail extends AdminUser {
+  streakDays: number
+}
+
 export interface Pagination {
   total: number
   page: number
@@ -24,5 +28,22 @@ export interface UsersResponse {
   data: {
     users: AdminUser[]
     pagination: Pagination
+  }
+}
+
+export interface UserDetailResponse {
+  success: boolean
+  message: string
+  data: {
+    user: AdminUserDetail
+  }
+}
+
+export interface UserStatusResponse {
+  success: boolean
+  message: string
+  data: {
+    userId: string
+    isActive: boolean
   }
 }
