@@ -1,140 +1,165 @@
+/* ───────────────────────────────────────────────────────
+   Login Page — Redesigned
+   ─────────────────────────────────────────────────────── */
+
 .login-page {
-	min-height: 100vh;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background:
-		radial-gradient(
-			circle at 15% 15%,
-			rgba(37, 99, 235, 0.12),
-			transparent 45%
-		),
-		radial-gradient(
-			circle at 85% 85%,
-			rgba(37, 99, 235, 0.08),
-			transparent 42%
-		),
-		var(--color-bg);
-	padding: var(--space-4);
-	animation: app-fade-in var(--duration-slow) var(--ease-decelerate);
+	min-height: 100vh;
+	background: linear-gradient(145deg, hsl(232,33%,13%) 0%, hsl(243,33%,20%) 50%, hsl(262,40%,22%) 100%);
+	padding: var(--sp-4);
+	position: relative;
+	overflow: hidden;
+}
+
+/* Decorative glow */
+.login-page::before {
+	content: "";
+	position: absolute;
+	top: -200px;
+	right: -200px;
+	width: 600px;
+	height: 600px;
+	background: radial-gradient(circle, hsla(243,75%,59%,0.15), transparent 70%);
+	pointer-events: none;
+}
+
+.login-page::after {
+	content: "";
+	position: absolute;
+	bottom: -200px;
+	left: -200px;
+	width: 500px;
+	height: 500px;
+	background: radial-gradient(circle, hsla(262,83%,58%,0.12), transparent 70%);
+	pointer-events: none;
 }
 
 .login-card {
 	width: 100%;
-	max-width: 400px;
-	background-color: var(--color-bg-card);
-	border: 1px solid var(--color-border);
-	border-radius: var(--radius-lg);
-	padding: var(--space-8);
-	box-shadow: var(--shadow-lg);
-	animation: app-scale-in var(--duration-base) var(--ease-decelerate);
+	max-width: 420px;
+	background: hsla(0,0%,100%,0.06);
+	backdrop-filter: blur(20px) saturate(150%);
+	-webkit-backdrop-filter: blur(20px) saturate(150%);
+	border: 1px solid hsla(0,0%,100%,0.1);
+	border-radius: var(--radius-xl);
+	padding: var(--sp-10);
+	box-shadow: 0 24px 48px hsla(232,33%,5%,0.5);
+	animation: modal-in var(--dur-slow) var(--ease-out);
+	position: relative;
+	z-index: 1;
 }
 
 .login-card__header {
 	text-align: center;
-	margin-bottom: var(--space-8);
+	margin-bottom: var(--sp-8);
 }
 
 .login-card__logo {
-	font-size: 40px;
+	font-size: 2.5rem;
 	display: block;
-	margin-bottom: var(--space-4);
-	animation: app-soft-pulse var(--duration-slow) var(--ease-emphasized);
+	margin-bottom: var(--sp-4);
+	filter: drop-shadow(0 4px 8px hsla(262,83%,58%,0.3));
 }
 
 .login-card__title {
-	font-size: var(--font-size-2xl);
-	font-weight: 700;
-	color: var(--color-text);
-	margin-bottom: var(--space-2);
+	font-size: var(--text-2xl);
+	font-weight: 800;
+	color: #fff;
+	letter-spacing: var(--tracking-tight);
+	margin-bottom: var(--sp-2);
 }
 
 .login-card__subtitle {
-	font-size: var(--font-size-sm);
-	color: var(--color-text-muted);
+	font-size: var(--text-sm);
+	color: hsla(0,0%,100%,0.55);
 }
 
 .login-form {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-5);
+	gap: var(--sp-5);
 }
 
 .login-form__error {
-	background-color: rgba(239, 68, 68, 0.1);
-	border: 1px solid rgba(239, 68, 68, 0.3);
-	color: var(--color-danger);
-	padding: var(--space-3) var(--space-4);
+	font-size: var(--text-sm);
+	color: hsl(0,84%,72%);
+	background: hsla(0,84%,60%,0.12);
+	border: 1px solid hsla(0,84%,60%,0.25);
 	border-radius: var(--radius-md);
-	font-size: var(--font-size-sm);
-	animation: app-fade-in-up var(--duration-fast) var(--ease-decelerate);
+	padding: var(--sp-3) var(--sp-4);
+	animation: app-fade-in-up var(--dur-fast) var(--ease-out);
 }
 
 .login-form__group {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-2);
+	gap: var(--sp-2);
 }
 
 .login-form__label {
-	font-size: var(--font-size-sm);
+	font-size: var(--text-sm);
 	font-weight: 500;
-	color: var(--color-text);
+	color: hsla(0,0%,100%,0.7);
 }
 
 .login-form__input {
-	width: 100%;
-	padding: var(--space-3) var(--space-4);
-	border: 1px solid var(--color-border);
+	height: 44px;
+	padding: 0 var(--sp-4);
+	border: 1px solid hsla(0,0%,100%,0.12);
 	border-radius: var(--radius-md);
-	font-size: var(--font-size-sm);
-	color: var(--color-text);
-	background-color: var(--color-bg);
-	transition:
-		border-color var(--transition-fast),
-		box-shadow var(--transition-fast),
-		background-color var(--transition-fast);
+	font-size: var(--text-base);
+	color: #fff;
+	background: hsla(0,0%,100%,0.06);
 	outline: none;
-}
-
-.login-form__input:focus-visible {
-	border-color: var(--color-border-focus);
-	box-shadow: var(--shadow-focus);
-	background-color: var(--color-bg-card);
+	transition:
+		border-color var(--transition-colors),
+		box-shadow var(--transition-colors),
+		background var(--transition-colors);
 }
 
 .login-form__input::placeholder {
-	color: var(--color-text-muted);
+	color: hsla(0,0%,100%,0.3);
+}
+
+.login-form__input:focus {
+	border-color: var(--color-primary);
+	background: hsla(0,0%,100%,0.1);
+	box-shadow: 0 0 0 3px hsla(243,75%,59%,0.25);
 }
 
 .login-form__submit {
-	width: 100%;
-	padding: var(--space-3) var(--space-4);
-	background-color: var(--color-primary);
-	color: #ffffff;
+	height: 46px;
+	background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+	color: #fff;
 	border: none;
 	border-radius: var(--radius-md);
-	font-size: var(--font-size-sm);
-	font-weight: 600;
-	transform: translateY(0);
+	font-size: var(--text-base);
+	font-weight: 700;
+	cursor: pointer;
+	margin-top: var(--sp-2);
 	transition:
-		background-color var(--transition-fast),
-		transform var(--transition-fast),
-		box-shadow var(--transition-fast);
+		transform var(--dur-fast) var(--ease-out),
+		box-shadow var(--transition-colors),
+		opacity var(--transition-colors);
 }
 
 .login-form__submit:hover:not(:disabled) {
-	background-color: var(--color-primary-hover);
-	transform: translateY(var(--hover-lift-y));
-	box-shadow: var(--shadow-md);
+	transform: translateY(-2px);
+	box-shadow: 0 8px 24px hsla(243,75%,59%,0.4);
+}
+
+.login-form__submit:active:not(:disabled) {
+	transform: translateY(0);
 }
 
 .login-form__submit:focus-visible {
 	outline: none;
-	box-shadow: var(--shadow-focus);
+	box-shadow: 0 0 0 3px hsla(243,75%,59%,0.4);
 }
 
 .login-form__submit:disabled {
-	opacity: 0.6;
+	opacity: 0.5;
 	cursor: not-allowed;
 }
