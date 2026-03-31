@@ -4,9 +4,11 @@ import ProtectedRoute from "./ProtectedRoute";
 import MainLayout from "@/components/layout/MainLayout";
 import LoginPage from "@/pages/Login/LoginPage";
 import DashboardPage from "@/pages/Dashboard/DashboardPage";
+import AnalyticsPage from "@/pages/Analytics/AnalyticsPage";
 import UsersPage from "@/pages/Users/UsersPage";
 import NotificationsPage from "@/pages/Notifications/NotificationsPage";
 import MusicPage from "@/pages/Music/MusicPage";
+import SystemPage from "@/pages/System/SystemPage";
 import NotFoundPage from "@/pages/NotFound/NotFoundPage";
 
 const router = createBrowserRouter([
@@ -34,6 +36,10 @@ const router = createBrowserRouter([
 						element: <DashboardPage />,
 					},
 					{
+						path: "analytics",
+						element: <AnalyticsPage />,
+					},
+					{
 						path: "users",
 						element: <UsersPage />,
 					},
@@ -44,6 +50,10 @@ const router = createBrowserRouter([
 					{
 						path: "music",
 						element: <MusicPage />,
+					},
+					{
+						path: "system",
+						element: <SystemPage />,
 					},
 				],
 			},

@@ -1,79 +1,208 @@
+/* ───────────────────────────────────────────────────────
+   MoodNote Admin — Design System Tokens
+   ─────────────────────────────────────────────────────── */
 :root {
-	/* Colors */
-	--color-primary: #6c63ff;
-	--color-primary-hover: #5a52d5;
-	--color-primary-light: rgba(108, 99, 255, 0.1);
+	/* ── Brand palette ── */
+	--color-primary: hsl(243, 75%, 59%);
+	--color-primary-hover: hsl(243, 75%, 50%);
+	--color-primary-light: hsla(243, 75%, 59%, 0.1);
+	--color-primary-subtle: hsla(243, 75%, 59%, 0.06);
 
-	--color-danger: #ef4444;
-	--color-danger-hover: #dc2626;
-	--color-success: #22c55e;
-	--color-warning: #f59e0b;
+	--color-accent: hsl(262, 83%, 58%);
+	--color-accent-light: hsla(262, 83%, 58%, 0.1);
 
-	--color-text: #1f2937;
-	--color-text-muted: #6b7280;
-	--color-text-inverse: #ffffff;
+	/* ── Semantic colors ── */
+	--color-danger: hsl(0, 84%, 60%);
+	--color-danger-hover: hsl(0, 84%, 50%);
+	--color-danger-light: hsla(0, 84%, 60%, 0.1);
 
-	--color-bg: #f9fafb;
-	--color-bg-card: #ffffff;
-	--color-bg-sidebar: #1e1e2e;
-	--color-bg-sidebar-hover: rgba(255, 255, 255, 0.08);
-	--color-bg-sidebar-active: rgba(108, 99, 255, 0.25);
+	--color-success: hsl(142, 71%, 45%);
+	--color-success-light: hsla(142, 71%, 45%, 0.1);
 
-	--color-border: #e5e7eb;
-	--color-border-focus: #6c63ff;
+	--color-warning: hsl(38, 92%, 50%);
+	--color-warning-light: hsla(38, 92%, 50%, 0.1);
 
-	/* Typography */
-	--font-sans: system-ui, "Segoe UI", Roboto, sans-serif;
-	--font-mono: ui-monospace, Consolas, monospace;
-	--font-size-xs: 12px;
-	--font-size-sm: 14px;
-	--font-size-base: 16px;
-	--font-size-lg: 18px;
-	--font-size-xl: 20px;
-	--font-size-2xl: 24px;
-	--font-size-3xl: 30px;
+	--color-info: hsl(217, 91%, 60%);
+	--color-info-light: hsla(217, 91%, 60%, 0.1);
 
-	/* Spacing */
-	--space-1: 4px;
-	--space-2: 8px;
-	--space-3: 12px;
-	--space-4: 16px;
-	--space-5: 20px;
-	--space-6: 24px;
-	--space-8: 32px;
-	--space-10: 40px;
-	--space-12: 48px;
+	/* ── Surfaces ── */
+	--color-bg: hsl(220, 14%, 96%);
+	--color-bg-elevated: hsl(0, 0%, 100%);
+	--color-bg-card: hsl(0, 0%, 100%);
+	--color-bg-card-hover: hsl(220, 14%, 98%);
+	--color-bg-subtle: hsl(220, 14%, 94%);
+	--color-bg-overlay: hsla(222, 47%, 11%, 0.5);
 
-	/* Layout */
-	--sidebar-width: 240px;
-	--header-height: 60px;
+	/* ── Sidebar ── */
+	--color-sidebar-bg: hsl(232, 33%, 13%);
+	--color-sidebar-bg-hover: hsla(0, 0%, 100%, 0.06);
+	--color-sidebar-bg-active: hsla(243, 75%, 59%, 0.2);
+	--color-sidebar-text: hsla(0, 0%, 100%, 0.6);
+	--color-sidebar-text-active: hsl(0, 0%, 100%);
+	--color-sidebar-divider: hsla(0, 0%, 100%, 0.08);
 
-	/* Border radius */
-	--radius-sm: 4px;
-	--radius-md: 8px;
-	--radius-lg: 12px;
+	/* ── Text ── */
+	--color-text: hsl(222, 47%, 11%);
+	--color-text-secondary: hsl(215, 16%, 47%);
+	--color-text-muted: hsl(215, 13%, 65%);
+	--color-text-inverse: hsl(0, 0%, 100%);
+
+	/* ── Borders ── */
+	--color-border: hsl(220, 13%, 91%);
+	--color-border-hover: hsl(220, 13%, 82%);
+	--color-border-focus: var(--color-primary);
+
+	/* ── Typography ── */
+	--font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	--font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+
+	--text-xs: 0.6875rem;     /* 11px */
+	--text-sm: 0.8125rem;     /* 13px */
+	--text-base: 0.875rem;    /* 14px */
+	--text-md: 0.9375rem;     /* 15px */
+	--text-lg: 1.0625rem;     /* 17px */
+	--text-xl: 1.25rem;       /* 20px */
+	--text-2xl: 1.5rem;       /* 24px */
+	--text-3xl: 1.875rem;     /* 30px */
+	--text-4xl: 2.25rem;      /* 36px */
+
+	--leading-tight: 1.2;
+	--leading-normal: 1.5;
+	--leading-relaxed: 1.65;
+
+	--tracking-tight: -0.025em;
+	--tracking-normal: 0;
+	--tracking-wide: 0.025em;
+	--tracking-wider: 0.05em;
+
+	/* ── Spacing scale ── */
+	--sp-0: 0;
+	--sp-0\.5: 2px;
+	--sp-1: 4px;
+	--sp-1\.5: 6px;
+	--sp-2: 8px;
+	--sp-3: 12px;
+	--sp-4: 16px;
+	--sp-5: 20px;
+	--sp-6: 24px;
+	--sp-8: 32px;
+	--sp-10: 40px;
+	--sp-12: 48px;
+	--sp-16: 64px;
+
+	/* ── Layout ── */
+	--sidebar-w: 256px;
+	--sidebar-collapsed-w: 72px;
+	--header-h: 56px;
+	--page-max-w: 1440px;
+	--page-px: var(--sp-8);
+
+	/* ── Radius ── */
+	--radius-xs: 4px;
+	--radius-sm: 6px;
+	--radius-md: 10px;
+	--radius-lg: 14px;
+	--radius-xl: 20px;
 	--radius-full: 9999px;
 
-	/* Shadows */
-	--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-	--shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.06);
-	--shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+	/* ── Shadows ── */
+	--shadow-xs: 0 1px 2px hsla(220, 43%, 11%, 0.04);
+	--shadow-sm: 0 1px 3px hsla(220, 43%, 11%, 0.06), 0 1px 2px hsla(220, 43%, 11%, 0.04);
+	--shadow-md: 0 4px 8px hsla(220, 43%, 11%, 0.06), 0 2px 4px hsla(220, 43%, 11%, 0.04);
+	--shadow-lg: 0 12px 24px hsla(220, 43%, 11%, 0.08), 0 4px 8px hsla(220, 43%, 11%, 0.04);
+	--shadow-xl: 0 24px 48px hsla(220, 43%, 11%, 0.12), 0 8px 16px hsla(220, 43%, 11%, 0.06);
 	--shadow-focus: 0 0 0 3px var(--color-primary-light);
+	--shadow-card: 0 1px 3px hsla(220, 43%, 11%, 0.04), 0 0 0 1px hsla(220, 43%, 11%, 0.02);
+	--shadow-card-hover: 0 8px 24px hsla(220, 43%, 11%, 0.08), 0 2px 4px hsla(220, 43%, 11%, 0.04);
 
-	/* Motion tokens */
-	--duration-instant: 0ms;
-	--duration-fast: 120ms;
-	--duration-base: 220ms;
-	--duration-slow: 320ms;
+	/* ── Motion ── */
+	--dur-instant: 0ms;
+	--dur-fast: 100ms;
+	--dur-base: 180ms;
+	--dur-slow: 280ms;
+	--dur-slower: 400ms;
 
-	--ease-standard: cubic-bezier(0.2, 0, 0, 1);
-	--ease-decelerate: cubic-bezier(0, 0, 0, 1);
-	--ease-accelerate: cubic-bezier(0.3, 0, 1, 1);
-	--ease-emphasized: cubic-bezier(0.2, 0.8, 0.2, 1);
+	--ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+	--ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+	--ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
-	--transition-fast: var(--duration-fast) var(--ease-standard);
-	--transition-base: var(--duration-base) var(--ease-standard);
-	--transition-slow: var(--duration-slow) var(--ease-decelerate);
+	--transition-colors: var(--dur-fast) var(--ease-out);
+	--transition-transform: var(--dur-base) var(--ease-spring);
+	--transition-all: var(--dur-base) var(--ease-out);
 
+	/* ── Z-index scale ── */
+	--z-base: 1;
+	--z-dropdown: 100;
+	--z-sticky: 200;
+	--z-overlay: 300;
+	--z-modal: 400;
+	--z-toast: 500;
+
+	/* ── Stat card accents ── */
+	--accent-purple: hsl(262, 83%, 58%);
+	--accent-green: hsl(142, 71%, 45%);
+	--accent-blue: hsl(217, 91%, 60%);
+	--accent-amber: hsl(38, 92%, 50%);
+	--accent-pink: hsl(330, 81%, 60%);
+	--accent-teal: hsl(172, 66%, 40%);
+	--accent-indigo: hsl(243, 75%, 59%);
+	--accent-rose: hsl(350, 89%, 60%);
+
+	/* Legacy compat (will remove) */
+	--font-size-xs: var(--text-xs);
+	--font-size-sm: var(--text-sm);
+	--font-size-base: var(--text-base);
+	--font-size-lg: var(--text-lg);
+	--font-size-xl: var(--text-xl);
+	--font-size-2xl: var(--text-2xl);
+	--font-size-3xl: var(--text-3xl);
+	--font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	--font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+	--color-text-muted: var(--color-text-secondary);
+	--color-bg-sidebar: var(--color-sidebar-bg);
+	--color-bg-sidebar-hover: var(--color-sidebar-bg-hover);
+	--color-bg-sidebar-active: var(--color-sidebar-bg-active);
+	--color-text-inverse: hsl(0, 0%, 100%);
+	--space-1: var(--sp-1);
+	--space-2: var(--sp-2);
+	--space-3: var(--sp-3);
+	--space-4: var(--sp-4);
+	--space-5: var(--sp-5);
+	--space-6: var(--sp-6);
+	--space-8: var(--sp-8);
+	--space-10: var(--sp-10);
+	--space-12: var(--sp-12);
+	--radius-sm: 6px;
+	--radius-md: 10px;
+	--radius-lg: 14px;
+	--shadow-sm: 0 1px 3px hsla(220, 43%, 11%, 0.06), 0 1px 2px hsla(220, 43%, 11%, 0.04);
+	--shadow-md: 0 4px 8px hsla(220, 43%, 11%, 0.06), 0 2px 4px hsla(220, 43%, 11%, 0.04);
+	--shadow-lg: 0 12px 24px hsla(220, 43%, 11%, 0.08), 0 4px 8px hsla(220, 43%, 11%, 0.04);
+	--shadow-focus: 0 0 0 3px var(--color-primary-light);
+	--color-primary: hsl(243, 75%, 59%);
+	--color-primary-hover: hsl(243, 75%, 50%);
+	--color-primary-light: hsla(243, 75%, 59%, 0.1);
+	--color-danger: hsl(0, 84%, 60%);
+	--color-danger-hover: hsl(0, 84%, 50%);
+	--color-success: hsl(142, 71%, 45%);
+	--color-warning: hsl(38, 92%, 50%);
+	--color-border: hsl(220, 13%, 91%);
+	--color-border-focus: var(--color-primary);
+	--color-bg: hsl(220, 14%, 96%);
+	--color-bg-card: hsl(0, 0%, 100%);
+	--color-text: hsl(222, 47%, 11%);
+	--sidebar-width: var(--sidebar-w);
+	--header-height: var(--header-h);
+	--duration-instant: var(--dur-instant);
+	--duration-fast: var(--dur-fast);
+	--duration-base: var(--dur-base);
+	--duration-slow: var(--dur-slow);
+	--ease-standard: var(--ease-out);
+	--ease-decelerate: var(--ease-out);
+	--ease-accelerate: var(--ease-in-out);
+	--ease-emphasized: var(--ease-spring);
+	--transition-fast: var(--dur-fast) var(--ease-out);
+	--transition-base: var(--dur-base) var(--ease-out);
+	--transition-slow: var(--dur-slow) var(--ease-out);
 	--hover-lift-y: -2px;
 }

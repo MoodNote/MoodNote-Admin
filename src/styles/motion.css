@@ -1,83 +1,116 @@
+/* ───────────────────────────────────────────────────────
+   Motion — Keyframe Library
+   ─────────────────────────────────────────────────────── */
+
+/* Fade in from below (page entrance, cards) */
 @keyframes app-fade-in-up {
 	from {
 		opacity: 0;
-		transform: translateY(10px);
+		transform: translateY(12px);
 	}
-
 	to {
 		opacity: 1;
 		transform: translateY(0);
 	}
 }
 
+/* Simple fade */
 @keyframes app-fade-in {
-	from {
-		opacity: 0;
-	}
-
-	to {
-		opacity: 1;
-	}
+	from { opacity: 0; }
+	to { opacity: 1; }
 }
 
+/* Scale entrance (modals, dropdowns) */
 @keyframes app-scale-in {
 	from {
 		opacity: 0;
-		transform: scale(0.98);
+		transform: scale(0.96);
 	}
-
 	to {
 		opacity: 1;
 		transform: scale(1);
 	}
 }
 
+/* Slide from top (header, toasts) */
 @keyframes app-slide-down {
 	from {
 		opacity: 0;
-		transform: translateY(-8px);
+		transform: translateY(-6px);
 	}
-
 	to {
 		opacity: 1;
 		transform: translateY(0);
 	}
 }
 
+/* Gentle breathing pulse */
 @keyframes app-soft-pulse {
-	0% {
-		transform: scale(1);
-	}
-
-	50% {
-		transform: scale(1.04);
-	}
-
-	100% {
-		transform: scale(1);
-	}
+	0%, 100% { transform: scale(1); }
+	50% { transform: scale(1.03); }
 }
 
+/* Spinner */
 @keyframes app-spin {
-	from {
-		transform: rotate(0deg);
-	}
-
-	to {
-		transform: rotate(360deg);
-	}
+	from { transform: rotate(0deg); }
+	to { transform: rotate(360deg); }
 }
 
+/* Skeleton shimmer */
 @keyframes app-shimmer {
-	0% {
-		background-position: 200% 0;
-	}
+	0% { background-position: 200% 0; }
+	100% { background-position: -200% 0; }
+}
 
-	100% {
-		background-position: -200% 0;
+/* Staggered card entrance (use with animation-delay) */
+@keyframes card-in {
+	from {
+		opacity: 0;
+		transform: translateY(16px) scale(0.98);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
 	}
 }
 
+/* Number count-up illusion — smooth value appear */
+@keyframes value-pop {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Bar chart fill animation */
+@keyframes bar-fill {
+	from { transform: scaleX(0); }
+	to { transform: scaleX(1); }
+}
+
+/* Overlay backdrop */
+@keyframes overlay-in {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+/* Modal slide up */
+@keyframes modal-in {
+	from {
+		opacity: 0;
+		transform: translateY(24px) scale(0.97);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+/* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,

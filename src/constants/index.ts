@@ -12,9 +12,11 @@ export const AUTH_CONFIG = {
 export const ROUTES = {
 	LOGIN: "/login",
 	DASHBOARD: "/dashboard",
+	ANALYTICS: "/analytics",
 	USERS: "/users",
 	MUSIC: "/music",
 	NOTIFICATIONS: "/notifications",
+	SYSTEM: "/system",
 } as const;
 
 export const ERROR_MESSAGES = {
