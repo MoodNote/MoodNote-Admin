@@ -9,6 +9,12 @@
 	display: flex;
 	flex-direction: column;
 	min-height: 100vh;
+	transition: margin-left var(--dur-slower) var(--ease-out);
+}
+
+/* When sidebar is collapsed (attribute set by Sidebar.tsx on documentElement) */
+:root[data-sidebar-collapsed="true"] .main-layout__body {
+	margin-left: var(--sidebar-collapsed-w);
 }
 
 .main-layout__content {

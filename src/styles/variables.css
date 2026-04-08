@@ -34,12 +34,14 @@
 	--color-bg-overlay: hsla(222, 47%, 11%, 0.5);
 
 	/* ── Sidebar ── */
-	--color-sidebar-bg: hsl(232, 33%, 13%);
-	--color-sidebar-bg-hover: hsla(0, 0%, 100%, 0.06);
-	--color-sidebar-bg-active: hsla(243, 75%, 59%, 0.2);
-	--color-sidebar-text: hsla(0, 0%, 100%, 0.6);
+	--color-sidebar-bg: hsl(232, 38%, 10%);
+	--color-sidebar-bg-end: hsl(240, 32%, 14%);
+	--color-sidebar-bg-hover: hsla(0, 0%, 100%, 0.07);
+	--color-sidebar-bg-active: hsla(243, 75%, 59%, 0.18);
+	--color-sidebar-text: hsla(0, 0%, 100%, 0.55);
 	--color-sidebar-text-active: hsl(0, 0%, 100%);
-	--color-sidebar-divider: hsla(0, 0%, 100%, 0.08);
+	--color-sidebar-divider: hsla(0, 0%, 100%, 0.07);
+	--color-sidebar-highlight: hsla(0, 0%, 100%, 0.03);
 
 	/* ── Text ── */
 	--color-text: hsl(222, 47%, 11%);
@@ -106,14 +108,22 @@
 	--radius-full: 9999px;
 
 	/* ── Shadows ── */
-	--shadow-xs: 0 1px 2px hsla(220, 43%, 11%, 0.04);
-	--shadow-sm: 0 1px 3px hsla(220, 43%, 11%, 0.06), 0 1px 2px hsla(220, 43%, 11%, 0.04);
-	--shadow-md: 0 4px 8px hsla(220, 43%, 11%, 0.06), 0 2px 4px hsla(220, 43%, 11%, 0.04);
-	--shadow-lg: 0 12px 24px hsla(220, 43%, 11%, 0.08), 0 4px 8px hsla(220, 43%, 11%, 0.04);
-	--shadow-xl: 0 24px 48px hsla(220, 43%, 11%, 0.12), 0 8px 16px hsla(220, 43%, 11%, 0.06);
+	--shadow-xs: 0 1px 2px hsla(220, 43%, 11%, 0.05);
+	--shadow-sm: 0 2px 4px hsla(220, 43%, 11%, 0.08), 0 1px 2px hsla(220, 43%, 11%, 0.05);
+	--shadow-md: 0 4px 12px hsla(220, 43%, 11%, 0.10), 0 2px 4px hsla(220, 43%, 11%, 0.06);
+	--shadow-lg: 0 12px 28px hsla(220, 43%, 11%, 0.12), 0 4px 8px hsla(220, 43%, 11%, 0.06);
+	--shadow-xl: 0 24px 48px hsla(220, 43%, 11%, 0.16), 0 8px 16px hsla(220, 43%, 11%, 0.08);
 	--shadow-focus: 0 0 0 3px var(--color-primary-light);
-	--shadow-card: 0 1px 3px hsla(220, 43%, 11%, 0.04), 0 0 0 1px hsla(220, 43%, 11%, 0.02);
-	--shadow-card-hover: 0 8px 24px hsla(220, 43%, 11%, 0.08), 0 2px 4px hsla(220, 43%, 11%, 0.04);
+	--shadow-card: 0 1px 3px hsla(220, 43%, 11%, 0.06), 0 0 0 1px hsla(220, 43%, 11%, 0.03);
+	--shadow-card-hover: 0 8px 28px hsla(220, 43%, 11%, 0.11), 0 2px 6px hsla(220, 43%, 11%, 0.06);
+	/* ── Accent glow shadows ── */
+	--shadow-glow-purple: 0 4px 20px hsla(262, 83%, 58%, 0.30);
+	--shadow-glow-green:  0 4px 20px hsla(142, 71%, 45%, 0.28);
+	--shadow-glow-blue:   0 4px 20px hsla(217, 91%, 60%, 0.28);
+	--shadow-glow-amber:  0 4px 20px hsla(38,  92%, 50%, 0.28);
+	--shadow-glow-pink:   0 4px 20px hsla(330, 81%, 60%, 0.28);
+	--shadow-glow-teal:   0 4px 20px hsla(172, 66%, 40%, 0.26);
+	--shadow-glow-primary: 0 4px 20px hsla(243, 75%, 59%, 0.30);
 
 	/* ── Motion ── */
 	--dur-instant: 0ms;

@@ -1,8 +1,12 @@
+/* ───────────────────────────────────────────────────────
+   Header — Premium Glassmorphism
+   ─────────────────────────────────────────────────────── */
+
 .header {
 	height: var(--header-h);
-	background: hsla(0, 0%, 100%, 0.8);
-	backdrop-filter: blur(12px) saturate(180%);
-	-webkit-backdrop-filter: blur(12px) saturate(180%);
+	background: hsla(0, 0%, 100%, 0.82);
+	backdrop-filter: blur(16px) saturate(200%);
+	-webkit-backdrop-filter: blur(16px) saturate(200%);
 	border-bottom: 1px solid var(--color-border);
 	display: flex;
 	align-items: center;
@@ -10,8 +14,12 @@
 	padding: 0 var(--sp-8);
 	position: sticky;
 	top: 0;
-	z-index: var(--z-sticky);
+	z-index: calc(var(--z-sticky) - 1);
 	animation: app-slide-down var(--dur-base) var(--ease-out);
+	/* Gradient bottom line */
+	box-shadow:
+		0 1px 0 0 var(--color-border),
+		0 4px 16px -4px hsla(220, 43%, 11%, 0.06);
 }
 
 .header__left {
@@ -22,9 +30,17 @@
 
 .header__title {
 	font-size: var(--text-md);
-	font-weight: 600;
+	font-weight: 700;
 	color: var(--color-text);
 	letter-spacing: var(--tracking-tight);
+	background: linear-gradient(
+		135deg,
+		var(--color-text) 0%,
+		hsl(243, 75%, 45%) 100%
+	);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
 }
 
 .header__right {
@@ -33,6 +49,7 @@
 	gap: var(--sp-4);
 }
 
+/* User info chip */
 .header__user-name {
 	font-size: var(--text-sm);
 	color: var(--color-text-secondary);
@@ -40,8 +57,21 @@
 	display: flex;
 	align-items: center;
 	gap: var(--sp-2);
+	background: var(--color-bg-subtle);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-full);
+	padding: var(--sp-1\.5) var(--sp-4) var(--sp-1\.5) var(--sp-2);
+	transition:
+		background var(--transition-colors),
+		border-color var(--transition-colors);
 }
 
+.header__user-name:hover {
+	background: var(--color-bg-card);
+	border-color: var(--color-border-hover);
+}
+
+/* Online status dot */
 .header__user-name::before {
 	content: "";
 	display: block;
@@ -49,28 +79,51 @@
 	height: 8px;
 	border-radius: var(--radius-full);
 	background: var(--color-success);
-	box-shadow: 0 0 0 2px hsla(142, 71%, 45%, 0.2);
+	box-shadow:
+		0 0 0 2px hsla(142, 71%, 45%, 0.2),
+		0 0 6px hsla(142, 71%, 45%, 0.4);
+	flex-shrink: 0;
+	animation: app-soft-pulse 2.5s ease-in-out infinite;
 }
 
+/* Logout button */
 .header__logout-btn {
 	padding: var(--sp-1\.5) var(--sp-4);
 	background-color: transparent;
 	border: 1px solid var(--color-border);
 	border-radius: var(--radius-sm);
 	font-size: var(--text-sm);
-	font-weight: 500;
+	font-weight: 600;
 	color: var(--color-text-secondary);
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: var(--sp-2);
 	transition:
 		background-color var(--transition-colors),
 		border-color var(--transition-colors),
 		color var(--transition-colors),
-		box-shadow var(--transition-colors);
+		box-shadow var(--transition-colors),
+		transform var(--dur-fast) var(--ease-out);
+}
+
+.header__logout-btn::before {
+	content: "→";
+	font-size: 14px;
+	display: inline-block;
+	transition: transform var(--dur-fast) var(--ease-out);
 }
 
 .header__logout-btn:hover {
 	background-color: var(--color-danger);
 	border-color: var(--color-danger);
 	color: #ffffff;
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px hsla(0, 84%, 60%, 0.25);
+}
+
+.header__logout-btn:hover::before {
+	transform: translateX(2px);
 }
 
 .header__logout-btn:focus-visible {
