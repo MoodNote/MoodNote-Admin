@@ -3,6 +3,7 @@ import type { AdminHealthResponse, AdminHealthData } from "@/types/health";
 import type {
 	AdminStatsData,
 	AdminStatsResponse,
+	MusicAnalyticsResponse,
 	MusicCatalogStats,
 	MusicStatsResponse,
 } from "@/types/stats";
@@ -16,28 +17,54 @@ export interface DashboardSnapshot {
 }
 
 class DashboardService {
-	getAdminStats = withErrorHandling(async (period: number) => {
-		const { data } = await api.get<AdminStatsResponse>("/admin/stats", {
-			params: { period },
-		});
+	/**
+	 * GET /admin/stats/overview
+	 * Thống kê tổng quan: users, entries, emotionDistribution, topKeywords.
+	 */
+	getAdminStats = withErrorHandling(async () => {
+		const { data } = await api.get<AdminStatsResponse>(
+			"/admin/stats/overview",
+		);
 		return data.data;
 	});
 
+	/**
+	 * GET /admin/stats/music
+	 * Music analytics: topRecommended, topPlayed, genreDistribution, recommendationModes.
+	 */
+	getMusicAnalytics = withErrorHandling(
+		async (limit?: number) => {
+			const { data } = await api.get<MusicAnalyticsResponse>(
+				"/admin/stats/music",
+				{ params: limit !== undefined ? { limit } : undefined },
+			);
+			return data.data;
+		},
+	);
+
+	/**
+	 * GET /admin/music/stats
+	 * Music catalog stats: totals (tracks, artists, genres) và topGenres.
+	 */
 	getMusicStats = withErrorHandling(async () => {
 		const { data } =
 			await api.get<MusicStatsResponse>("/admin/music/stats");
 		return data.data.stats;
 	});
 
+	/**
+	 * GET /admin/health
+	 * Kiểm tra trạng thái server, database và memory.
+	 */
 	getHealth = withErrorHandling(async () => {
 		const { data } = await api.get<AdminHealthResponse>("/admin/health");
 		return data.data;
 	});
 
-	getSnapshot = async (period: number): Promise<DashboardSnapshot> => {
+	getSnapshot = async (): Promise<DashboardSnapshot> => {
 		const [statsResult, musicResult, healthResult] =
 			await Promise.allSettled([
-				this.getAdminStats(period),
+				this.getAdminStats(),
 				this.getMusicStats(),
 				this.getHealth(),
 			]);

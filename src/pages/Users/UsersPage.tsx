@@ -320,10 +320,8 @@ export default function UsersPage() {
 							<th>Role</th>
 							<th>Status</th>
 							<th>Verified</th>
-							<th>Entries</th>
 							<th>Last Login</th>
 							<th>Joined</th>
-							<th />
 						</tr>
 					</thead>
 					<tbody>
@@ -332,7 +330,7 @@ export default function UsersPage() {
 								<tr
 									key={i}
 									className="users-table__skeleton-row">
-									{Array.from({ length: 8 }).map((__, j) => (
+									{Array.from({ length: 6 }).map((__, j) => (
 										<td key={j}>
 											<span className="skeleton" />
 										</td>
@@ -342,7 +340,7 @@ export default function UsersPage() {
 						) : users.length === 0 ? (
 							<tr>
 								<td
-									colSpan={8}
+									colSpan={6}
 									className="users-table__empty">
 									<div className="empty-state">
 										<span className="empty-state__icon">
@@ -374,9 +372,16 @@ export default function UsersPage() {
 												<span className="user-cell__name">
 													{user.name}
 												</span>
-												<span className="user-cell__meta">
-													@{user.username} ·{" "}
-													{user.email}
+											</div>
+											{/* Tooltip */}
+											<div className="user-cell__tooltip" role="tooltip">
+												<span className="user-cell__tooltip-row">
+													<span className="user-cell__tooltip-label">Username</span>
+													<span>@{user.username}</span>
+												</span>
+												<span className="user-cell__tooltip-row">
+													<span className="user-cell__tooltip-label">Email</span>
+													<span>{user.email}</span>
 												</span>
 											</div>
 										</div>
@@ -412,29 +417,13 @@ export default function UsersPage() {
 												: "Unverified"}
 										</span>
 									</td>
-									<td className="users-table__num">
-										{user.entryCount.toLocaleString()}
-									</td>
 									<td className="users-table__date">
 										{user.lastLoginAt
-											? formatRelativeTime(
-													user.lastLoginAt,
-												)
+											? formatRelativeTime(user.lastLoginAt)
 											: "—"}
 									</td>
 									<td className="users-table__date">
 										{formatDate(user.createdAt)}
-									</td>
-									<td>
-										<button
-											type="button"
-											className="users-table__details-btn"
-											onClick={(e) => {
-												e.stopPropagation();
-												handleOpenUserDetails(user);
-											}}>
-											Details
-										</button>
 									</td>
 								</tr>
 							))

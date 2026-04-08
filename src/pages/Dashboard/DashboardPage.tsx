@@ -3,13 +3,10 @@ import { dashboardService } from "@/services";
 import type { AdminHealthData } from "@/types/health";
 import type {
 	AdminStatsData,
-	EntriesAnalysisStatus,
 	MusicCatalogStats,
 } from "@/types/stats";
 import { formatCompact, formatDateTime } from "@/utils/format";
 import "./DashboardPage.css";
-
-type PeriodOption = 7 | 30 | 90;
 
 interface StatCardData {
 	label: string;
@@ -18,40 +15,9 @@ interface StatCardData {
 	color: "purple" | "green" | "blue" | "amber" | "pink" | "teal";
 }
 
-const PERIOD_OPTIONS: PeriodOption[] = [7, 30, 90];
 
-function renderAnalysisStatus(status: EntriesAnalysisStatus | undefined) {
-	if (!status) {
-		return (
-			<p className="panel-empty">No analysis status available.</p>
-		);
-	}
-
-	const rows: { label: keyof EntriesAnalysisStatus; tone: string }[] = [
-		{ label: "COMPLETED", tone: "success" },
-		{ label: "PENDING", tone: "warning" },
-		{ label: "PROCESSING", tone: "neutral" },
-		{ label: "FAILED", tone: "danger" },
-	];
-
-	return (
-		<div className="analysis-grid">
-			{rows.map((row) => (
-				<div
-					key={row.label}
-					className={`analysis-grid__item analysis-grid__item--${row.tone}`}>
-					<span className="analysis-grid__label">{row.label}</span>
-					<span className="analysis-grid__value">
-						{formatCompact(status[row.label])}
-					</span>
-				</div>
-			))}
-		</div>
-	);
-}
 
 export default function DashboardPage() {
-	const [period, setPeriod] = useState<PeriodOption>(7);
 	const [stats, setStats] = useState<AdminStatsData | null>(null);
 	const [musicStats, setMusicStats] = useState<MusicCatalogStats | null>(
 		null,
@@ -61,41 +27,37 @@ export default function DashboardPage() {
 	const [error, setError] = useState("");
 	const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
-	const fetchDashboardData = useCallback(
-		async (selectedPeriod: PeriodOption) => {
-			setLoading(true);
-			setError("");
-			try {
-				const snapshot =
-					await dashboardService.getSnapshot(selectedPeriod);
-				setStats(snapshot.stats);
-				setMusicStats(snapshot.musicStats);
-				setHealth(snapshot.health);
+	const fetchDashboardData = useCallback(async () => {
+		setLoading(true);
+		setError("");
+		try {
+			const snapshot = await dashboardService.getSnapshot();
+			setStats(snapshot.stats);
+			setMusicStats(snapshot.musicStats);
+			setHealth(snapshot.health);
 
-				if (snapshot.successCount === 0) {
-					setError("Failed to load dashboard data.");
-				} else if (snapshot.successCount < 3) {
-					setError("Some dashboard widgets could not be loaded.");
-				}
-
-				if (snapshot.successCount > 0) {
-					setLastUpdated(new Date().toISOString());
-				}
-			} catch {
+			if (snapshot.successCount === 0) {
 				setError("Failed to load dashboard data.");
-			} finally {
-				setLoading(false);
+			} else if (snapshot.successCount < 3) {
+				setError("Some dashboard widgets could not be loaded.");
 			}
-		},
-		[],
-	);
+
+			if (snapshot.successCount > 0) {
+				setLastUpdated(new Date().toISOString());
+			}
+		} catch {
+			setError("Failed to load dashboard data.");
+		} finally {
+			setLoading(false);
+		}
+	}, []);
 
 	useEffect(() => {
 		const timer = window.setTimeout(() => {
-			void fetchDashboardData(period);
+			void fetchDashboardData();
 		}, 0);
 		return () => window.clearTimeout(timer);
-	}, [fetchDashboardData, period]);
+	}, [fetchDashboardData]);
 
 	const statCards: StatCardData[] = useMemo(() => {
 		const cards: StatCardData[] = [
@@ -119,7 +81,7 @@ export default function DashboardPage() {
 			},
 			{
 				label: "Entries Today",
-				value: stats?.entries.new.today,
+				value: stats?.entries.today,
 				icon: "📅",
 				color: "amber",
 			},
@@ -137,31 +99,6 @@ export default function DashboardPage() {
 			},
 		];
 
-		if (stats?.users.dau !== undefined) {
-			cards.push({
-				label: "DAU",
-				value: stats.users.dau,
-				icon: "📊",
-				color: "blue",
-			});
-		}
-		if (stats?.users.mau !== undefined) {
-			cards.push({
-				label: "MAU",
-				value: stats.users.mau,
-				icon: "📈",
-				color: "purple",
-			});
-		}
-		if (stats?.users.retentionRate !== undefined) {
-			cards.push({
-				label: "Retention",
-				value: `${stats.users.retentionRate.toFixed(1)}%`,
-				icon: "🔄",
-				color: "green",
-			});
-		}
-
 		return cards;
 	}, [musicStats, stats]);
 
@@ -175,30 +112,10 @@ export default function DashboardPage() {
 					</p>
 				</div>
 				<div className="page-header__controls">
-					<label
-						className="sr-only"
-						htmlFor="period-select">
-						Period
-					</label>
-					<select
-						id="period-select"
-						className="control-select"
-						value={period}
-						onChange={(e) =>
-							setPeriod(Number(e.target.value) as PeriodOption)
-						}>
-						{PERIOD_OPTIONS.map((option) => (
-							<option
-								key={option}
-								value={option}>
-								Last {option} day{option > 1 ? "s" : ""}
-							</option>
-						))}
-					</select>
 					<button
 						type="button"
 						className="btn btn--primary btn--sm"
-						onClick={() => void fetchDashboardData(period)}
+						onClick={() => void fetchDashboardData()}
 						disabled={loading}>
 						{loading ? "Loading…" : "↻ Refresh"}
 					</button>
@@ -241,16 +158,6 @@ export default function DashboardPage() {
 
 			{/* ── Quick glance panels ── */}
 			<div className="overview-panels">
-				{/* Analysis Status */}
-				<section className="overview-panel">
-					<div className="overview-panel__head">
-						<h3 className="overview-panel__title">
-							Analysis Status
-						</h3>
-						<span className="overview-panel__hint">Entries</span>
-					</div>
-					{renderAnalysisStatus(stats?.entries.byAnalysisStatus)}
-				</section>
 
 				{/* Top Genres */}
 				<section className="overview-panel">

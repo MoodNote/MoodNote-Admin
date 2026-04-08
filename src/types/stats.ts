@@ -1,12 +1,8 @@
-export interface TrendPoint {
-	date: string;
-	count: number;
-}
+// ── Shared ────────────────────────────────────────────────────────────────────
 
 export interface EmotionDistributionItem {
 	emotion: string;
 	count: number;
-	percentage?: number;
 }
 
 export interface TopKeyword {
@@ -14,47 +10,35 @@ export interface TopKeyword {
 	count: number;
 }
 
-export interface UsersAnalytics {
+// ── GET /admin/stats/overview ─────────────────────────────────────────────────
+
+/** Thống kê tổng quan về users (chỉ role = USER, không tính admin) */
+export interface UsersOverview {
 	total: number;
 	active: number;
-	verified: number;
-	new: {
-		today: number;
-		thisWeek: number;
-		thisMonth: number;
-	};
-	trend: TrendPoint[];
-	// Extended fields (SRS FR-25 — optional until BE implements)
-	dau?: number;
-	mau?: number;
-	retentionRate?: number;
+	inactive: number;
+	newToday: number;
+	newThisWeek: number;
+	newThisMonth: number;
 }
 
-export interface EntriesAnalysisStatus {
-	PENDING: number;
-	PROCESSING: number;
-	COMPLETED: number;
-	FAILED: number;
-}
-
-export interface EntriesAnalytics {
+/** Thống kê tổng quan về entries (thisWeek = 7 ngày, thisMonth = 30 ngày) */
+export interface EntriesOverview {
 	total: number;
-	new: {
-		today: number;
-		thisWeek: number;
-		thisMonth: number;
-	};
-	trend: TrendPoint[];
-	byAnalysisStatus: EntriesAnalysisStatus;
-	avgWordCount: number;
-	// Extended fields (SRS FR-25 — optional until BE implements)
-	emotionDistribution?: EmotionDistributionItem[];
-	topKeywords?: TopKeyword[];
+	today: number;
+	thisWeek: number;
+	thisMonth: number;
+	/** Số entries đã được AI phân tích */
+	analyzed: number;
 }
 
 export interface AdminStatsData {
-	users: UsersAnalytics;
-	entries: EntriesAnalytics;
+	users: UsersOverview;
+	entries: EntriesOverview;
+	/** Top cảm xúc trong toàn hệ thống */
+	emotionDistribution: EmotionDistributionItem[];
+	/** Top keywords từ 30 ngày gần nhất, top 10 */
+	topKeywords: TopKeyword[];
 }
 
 export interface AdminStatsResponse {
@@ -62,6 +46,59 @@ export interface AdminStatsResponse {
 	message: string;
 	data: AdminStatsData;
 }
+
+// ── GET /admin/stats/music ────────────────────────────────────────────────────
+
+export interface TrackArtistRef {
+	artist: { name: string };
+}
+
+export interface TrackRef {
+	id: string;
+	trackName: string;
+	albumName: string;
+	artists: TrackArtistRef[];
+}
+
+export interface TopRecommendedItem {
+	track: TrackRef;
+	recommendationCount: number;
+}
+
+export interface TopPlayedItem {
+	track: TrackRef;
+	playCount: number;
+}
+
+export interface GenreDistributionItem {
+	genre: string;
+	count: number;
+}
+
+export interface RecommendationModeItem {
+	mode: "MIRROR" | "SHIFT";
+	count: number;
+}
+
+export interface MusicAnalyticsData {
+	/** Top tracks xuất hiện nhiều nhất trong recommendation playlists */
+	topRecommended: TopRecommendedItem[];
+	/** Top tracks có số TrackPlay records nhiều nhất */
+	topPlayed: TopPlayedItem[];
+	/** Phân bố thể loại nhạc từ bảng TrackGenre */
+	genreDistribution: GenreDistributionItem[];
+	/** Breakdown MIRROR vs SHIFT recommendations */
+	recommendationModes: RecommendationModeItem[];
+}
+
+export interface MusicAnalyticsResponse {
+	success: boolean;
+	message: string;
+	data: MusicAnalyticsData;
+}
+
+// ── GET /admin/music/stats ────────────────────────────────────────────────────
+// (music catalog stats — định nghĩa theo api-spec-music.md)
 
 export interface TopGenreStat {
 	genreId: string;

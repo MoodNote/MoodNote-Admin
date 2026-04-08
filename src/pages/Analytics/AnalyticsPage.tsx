@@ -4,62 +4,11 @@ import type { AdminStatsData } from "@/types/stats";
 import type {
 	EmotionDistributionItem,
 	TopKeyword,
-	TrendPoint,
 } from "@/types/stats";
 import { formatCompact, formatDateTime } from "@/utils/format";
 import "./AnalyticsPage.css";
 
-type PeriodOption = 7 | 30 | 90;
 type ActiveTab = "users" | "content";
-
-const PERIOD_OPTIONS: PeriodOption[] = [7, 30, 90];
-
-function formatTrendDate(date: string): string {
-	const d = new Date(date);
-	const day = String(d.getDate()).padStart(2, "0");
-	const month = String(d.getMonth() + 1).padStart(2, "0");
-	return `${day}/${month}`;
-}
-
-function TrendChart({
-	data,
-	emptyLabel,
-}: {
-	data: TrendPoint[];
-	emptyLabel: string;
-}) {
-	if (data.length === 0) {
-		return <p className="analytics-empty">{emptyLabel}</p>;
-	}
-
-	const max = Math.max(...data.map((p) => p.count), 1);
-
-	return (
-		<div className="trend-chart">
-			{data.map((point) => {
-				const pct = (point.count / max) * 100;
-				return (
-					<div
-						key={point.date}
-						className="trend-chart__bar-group">
-						<div className="trend-chart__bar-track">
-							<div
-								className="trend-chart__bar"
-								style={{ height: `${pct}%` }}
-							/>
-						</div>
-						<span className="trend-chart__value">
-							{formatCompact(point.count)}
-						</span>
-						<span className="trend-chart__label">
-							{formatTrendDate(point.date)}
-						</span>
-					</div>
-				);
-			})}
-		</div>
-	);
-}
 
 function EmotionBars({ data }: { data: EmotionDistributionItem[] }) {
 	if (data.length === 0) {
@@ -87,9 +36,7 @@ function EmotionBars({ data }: { data: EmotionDistributionItem[] }) {
 							/>
 						</div>
 						<span className="emotion-bars__value">
-							{item.percentage !== undefined
-								? `${item.percentage}%`
-								: formatCompact(item.count)}
+							{formatCompact(item.count)}
 						</span>
 					</div>
 				);
@@ -120,17 +67,16 @@ function KeywordCloud({ data }: { data: TopKeyword[] }) {
 
 export default function AnalyticsPage() {
 	const [tab, setTab] = useState<ActiveTab>("users");
-	const [period, setPeriod] = useState<PeriodOption>(30);
 	const [stats, setStats] = useState<AdminStatsData | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
 	const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
-	const fetchData = useCallback(async (p: PeriodOption) => {
+	const fetchData = useCallback(async () => {
 		setLoading(true);
 		setError("");
 		try {
-			const snapshot = await dashboardService.getSnapshot(p);
+			const snapshot = await dashboardService.getSnapshot();
 			setStats(snapshot.stats);
 			if (snapshot.stats) {
 				setLastUpdated(new Date().toISOString());
@@ -145,8 +91,8 @@ export default function AnalyticsPage() {
 	}, []);
 
 	useEffect(() => {
-		void fetchData(period);
-	}, [fetchData, period]);
+		void fetchData();
+	}, [fetchData]);
 
 	const TABS: { id: ActiveTab; label: string }[] = [
 		{ id: "users", label: "User Analytics" },
@@ -163,25 +109,10 @@ export default function AnalyticsPage() {
 					</p>
 				</div>
 				<div className="page-header__controls">
-					<select
-						id="analytics-period"
-						className="control-select"
-						value={period}
-						onChange={(e) =>
-							setPeriod(Number(e.target.value) as PeriodOption)
-						}>
-						{PERIOD_OPTIONS.map((o) => (
-							<option
-								key={o}
-								value={o}>
-								Last {o} days
-							</option>
-						))}
-					</select>
 					<button
 						type="button"
 						className="btn btn--primary btn--sm"
-						onClick={() => void fetchData(period)}
+						onClick={() => void fetchData()}
 						disabled={loading}>
 						{loading ? "Loading…" : "↻ Refresh"}
 					</button>
@@ -213,35 +144,27 @@ export default function AnalyticsPage() {
 					{/* Summary cards */}
 					<div className="analytics-summary">
 						<div className="summary-card">
-							<span className="summary-card__label">DAU</span>
+							<span className="summary-card__label">Total</span>
 							<span className="summary-card__value">
 								{loading
 									? "—"
-									: stats?.users.dau !== undefined
-										? formatCompact(stats.users.dau)
-										: "N/A"}
+									: formatCompact(stats?.users.total ?? 0)}
 							</span>
 						</div>
 						<div className="summary-card">
-							<span className="summary-card__label">MAU</span>
+							<span className="summary-card__label">Active</span>
 							<span className="summary-card__value">
 								{loading
 									? "—"
-									: stats?.users.mau !== undefined
-										? formatCompact(stats.users.mau)
-										: "N/A"}
+									: formatCompact(stats?.users.active ?? 0)}
 							</span>
 						</div>
 						<div className="summary-card">
-							<span className="summary-card__label">
-								Retention
-							</span>
+							<span className="summary-card__label">Inactive</span>
 							<span className="summary-card__value">
 								{loading
 									? "—"
-									: stats?.users.retentionRate !== undefined
-										? `${stats.users.retentionRate.toFixed(1)}%`
-										: "N/A"}
+									: formatCompact(stats?.users.inactive ?? 0)}
 							</span>
 						</div>
 						<div className="summary-card">
@@ -252,21 +175,30 @@ export default function AnalyticsPage() {
 								{loading
 									? "—"
 									: formatCompact(
-											stats?.users.new.thisWeek ?? 0,
+											stats?.users.newThisWeek ?? 0,
 										)}
 							</span>
 						</div>
-					</div>
-
-					{/* Trend */}
-					<div className="analytics-panel">
-						<h3 className="analytics-panel__title">
-							User Signup Trend
-						</h3>
-						<TrendChart
-							data={stats?.users.trend ?? []}
-							emptyLabel="No user trend data available."
-						/>
+						<div className="summary-card">
+							<span className="summary-card__label">
+								New this month
+							</span>
+							<span className="summary-card__value">
+								{loading
+									? "—"
+									: formatCompact(
+											stats?.users.newThisMonth ?? 0,
+										)}
+							</span>
+						</div>
+						<div className="summary-card">
+							<span className="summary-card__label">New today</span>
+							<span className="summary-card__value">
+								{loading
+									? "—"
+									: formatCompact(stats?.users.newToday ?? 0)}
+							</span>
+						</div>
 					</div>
 				</div>
 			)}
@@ -290,51 +222,59 @@ export default function AnalyticsPage() {
 							<span className="summary-card__value">
 								{loading
 									? "—"
+									: formatCompact(stats?.entries.today ?? 0)}
+							</span>
+						</div>
+						<div className="summary-card">
+							<span className="summary-card__label">This week</span>
+							<span className="summary-card__value">
+								{loading
+									? "—"
 									: formatCompact(
-											stats?.entries.new.today ?? 0,
+											stats?.entries.thisWeek ?? 0,
 										)}
 							</span>
 						</div>
 						<div className="summary-card">
 							<span className="summary-card__label">
-								Avg word count
+								This month
 							</span>
 							<span className="summary-card__value">
 								{loading
 									? "—"
-									: stats?.entries.avgWordCount ?? "—"}
+									: formatCompact(
+											stats?.entries.thisMonth ?? 0,
+										)}
+							</span>
+						</div>
+						<div className="summary-card">
+							<span className="summary-card__label">Analyzed</span>
+							<span className="summary-card__value">
+								{loading
+									? "—"
+									: formatCompact(stats?.entries.analyzed ?? 0)}
 							</span>
 						</div>
 					</div>
 
-					{/* Entry trend */}
-					<div className="analytics-panel">
-						<h3 className="analytics-panel__title">Entry Trend</h3>
-						<TrendChart
-							data={stats?.entries.trend ?? []}
-							emptyLabel="No entry trend data available."
-						/>
-					</div>
-
 					{/* Emotion distribution */}
-					{stats?.entries.emotionDistribution && (
-						<div className="analytics-panel">
-							<h3 className="analytics-panel__title">
-								Emotion Distribution
-							</h3>
-							<EmotionBars
-								data={stats.entries.emotionDistribution}
-							/>
-						</div>
-					)}
+					{stats?.emotionDistribution &&
+						stats.emotionDistribution.length > 0 && (
+							<div className="analytics-panel">
+								<h3 className="analytics-panel__title">
+									Emotion Distribution
+								</h3>
+								<EmotionBars data={stats.emotionDistribution} />
+							</div>
+						)}
 
 					{/* Top keywords */}
-					{stats?.entries.topKeywords && (
+					{stats?.topKeywords && stats.topKeywords.length > 0 && (
 						<div className="analytics-panel">
 							<h3 className="analytics-panel__title">
 								Top Keywords
 							</h3>
-							<KeywordCloud data={stats.entries.topKeywords} />
+							<KeywordCloud data={stats.topKeywords} />
 						</div>
 					)}
 				</div>
