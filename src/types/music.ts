@@ -97,7 +97,34 @@ export interface GenreDetailResponse {
 	};
 }
 
-export interface UpsertTrackPayload {
+// ── POST /admin/music/tracks (Create) ───────────────────────────────────────
+// trackName: required (min 1, max 300)
+// artistIds: required (min 1 valid UUID)
+export interface CreateTrackPayload {
+	trackName: string;
+	albumName?: string;
+	popularity?: number;
+	isExplicit?: boolean;
+	durationMs?: number;
+	danceability?: number;
+	energy?: number;
+	key?: number;
+	loudness?: number;
+	speechiness?: number;
+	acousticness?: number;
+	instrumentalness?: number;
+	liveness?: number;
+	valence?: number;
+	tempo?: number;
+	lyrics?: string;
+	artistIds: string[];
+	genreIds?: string[];
+}
+
+// ── PATCH /admin/music/tracks/:id (Update) ───────────────────────────────────
+// All fields optional. Must send at least 1 field.
+// If artistIds/genreIds sent → replaces existing list completely.
+export interface UpdateTrackPayload {
 	trackName?: string;
 	albumName?: string;
 	popularity?: number;
@@ -117,3 +144,6 @@ export interface UpsertTrackPayload {
 	artistIds?: string[];
 	genreIds?: string[];
 }
+
+/** @deprecated Use CreateTrackPayload or UpdateTrackPayload instead */
+export type UpsertTrackPayload = CreateTrackPayload | UpdateTrackPayload;

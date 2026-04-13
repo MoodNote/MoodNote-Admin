@@ -6,7 +6,8 @@ import type {
 	GenresResponse,
 	TrackDetailResponse,
 	TracksResponse,
-	UpsertTrackPayload,
+	CreateTrackPayload,
+	UpdateTrackPayload,
 } from "@/types/music";
 import type { MusicStatsResponse } from "@/types/stats";
 import { withErrorHandling } from "@/utils/error";
@@ -97,12 +98,21 @@ class MusicService {
 		return data.data.track;
 	});
 
-	createTrack = withErrorHandling(async (payload: UpsertTrackPayload) => {
+	/**
+	 * POST /admin/music/tracks
+	 * trackName (required), artistIds (required, min 1) — spec enforced.
+	 */
+	createTrack = withErrorHandling(async (payload: CreateTrackPayload) => {
 		await api.post("/admin/music/tracks", payload);
 	});
 
+	/**
+	 * PATCH /admin/music/tracks/:id
+	 * All fields optional — at least 1 must be sent.
+	 * Sending artistIds/genreIds replaces the existing list completely.
+	 */
 	updateTrack = withErrorHandling(
-		async (trackId: string, payload: UpsertTrackPayload) => {
+		async (trackId: string, payload: UpdateTrackPayload) => {
 			await api.patch(`/admin/music/tracks/${trackId}`, payload);
 		},
 	);

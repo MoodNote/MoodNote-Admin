@@ -10,11 +10,8 @@ export interface UsersQueryParams {
 	page: number;
 	limit: number;
 	search?: string;
+	/** "true" | "false" — theo query string chuẩn của Zod schema listUsersSchema */
 	isActive?: "true" | "false";
-	createdFrom?: string;
-	createdTo?: string;
-	entryCountMin?: string;
-	entryCountMax?: string;
 }
 
 class UsersService {

@@ -2,6 +2,7 @@ export interface User {
 	id: string;
 	name: string;
 	email: string;
+	username: string;
 	role: string;
 }
 
@@ -30,4 +31,11 @@ export interface AdminRefreshResponse {
 		accessToken: string;
 		expiresIn: number;
 	};
+}
+
+// ── POST /admin/auth/logout ──────────────────────────────────────────────────
+// Response: { success: true, message: "Admin logout successful" }
+export interface AdminLogoutResponse {
+	success: boolean;
+	message: string;
 }

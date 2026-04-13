@@ -3,7 +3,6 @@ import type { FormEvent } from "react";
 import { musicService } from "@/services";
 import type { Genre } from "@/types/music";
 import type { Pagination } from "@/types/user";
-import { formatDate } from "@/utils/format";
 import { getErrorMessage } from "@/utils/error";
 import { cn } from "@/utils/cn";
 
@@ -167,20 +166,18 @@ export default function GenresTab() {
 				<table className="music-table">
 					<thead>
 						<tr>
-							<th>Name</th>
-							<th>Tracks</th>
-							<th>Created</th>
-							<th>Updated</th>
-							<th />
+							<th className="music-col--genre-name">Name</th>
+							<th className="music-col--genre-tracks">Tracks</th>
+							<th className="music-col--actions" />
 						</tr>
 					</thead>
 					<tbody>
 						{loading ? (
-							Array.from({ length: 5 }).map((_, i) => (
+							Array.from({ length: 8 }).map((_, i) => (
 								<tr
 									key={i}
 									className="music-table__skeleton-row">
-									{Array.from({ length: 5 }).map((__, j) => (
+									{Array.from({ length: 3 }).map((__, j) => (
 										<td key={j}>
 											<span className="skeleton" />
 										</td>
@@ -190,7 +187,7 @@ export default function GenresTab() {
 						) : genres.length === 0 ? (
 							<tr>
 								<td
-									colSpan={5}
+									colSpan={3}
 									className="music-table__empty">
 									No genres found.
 								</td>
@@ -198,21 +195,15 @@ export default function GenresTab() {
 						) : (
 							genres.map((g) => (
 								<tr key={g.id}>
-									<td>{g.name}</td>
-									<td className="music-table__num">
+									<td className="music-col--genre-name">
+										<span style={{ fontWeight: 600, color: "var(--color-text)" }}>
+											{g.name}
+										</span>
+									</td>
+									<td className="music-col--genre-tracks music-table__num">
 										{g.trackCount ?? 0}
 									</td>
-									<td className="music-table__date">
-										{g.createdAt
-											? formatDate(g.createdAt)
-											: "—"}
-									</td>
-									<td className="music-table__date">
-										{g.updatedAt
-											? formatDate(g.updatedAt)
-											: "—"}
-									</td>
-									<td>
+									<td className="music-col--actions">
 										<div className="music-table__actions">
 											<button
 												className="action-btn action-btn--edit"

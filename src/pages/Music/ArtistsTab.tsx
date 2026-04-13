@@ -167,16 +167,16 @@ export default function ArtistsTab() {
 				<table className="music-table">
 					<thead>
 						<tr>
-							<th>Name</th>
-							<th>Tracks</th>
-							<th>Created</th>
-							<th>Updated</th>
-							<th />
+							<th className="music-col--artist-name">Name</th>
+							<th className="music-col--artist-tracks">Tracks</th>
+							<th className="music-col--artist-created">Created</th>
+							<th className="music-col--artist-updated">Updated</th>
+							<th className="music-col--actions" />
 						</tr>
 					</thead>
 					<tbody>
 						{loading ? (
-							Array.from({ length: 5 }).map((_, i) => (
+							Array.from({ length: 8 }).map((_, i) => (
 								<tr
 									key={i}
 									className="music-table__skeleton-row">
@@ -198,21 +198,25 @@ export default function ArtistsTab() {
 						) : (
 							artists.map((a) => (
 								<tr key={a.id}>
-									<td>{a.name}</td>
-									<td className="music-table__num">
+									<td className="music-col--artist-name">
+										<span style={{ fontWeight: 600, color: "var(--color-text)" }}>
+											{a.name}
+										</span>
+									</td>
+									<td className="music-col--artist-tracks music-table__num">
 										{a.trackCount ?? 0}
 									</td>
-									<td className="music-table__date">
+									<td className="music-col--artist-created music-table__date">
 										{a.createdAt
 											? formatDate(a.createdAt)
 											: "—"}
 									</td>
-									<td className="music-table__date">
+									<td className="music-col--artist-updated music-table__date">
 										{a.updatedAt
 											? formatDate(a.updatedAt)
 											: "—"}
 									</td>
-									<td>
+									<td className="music-col--actions">
 										<div className="music-table__actions">
 											<button
 												className="action-btn action-btn--edit"

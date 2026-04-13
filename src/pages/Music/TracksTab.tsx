@@ -1,9 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { musicService } from "@/services";
-import type { Artist, Genre, Track, UpsertTrackPayload } from "@/types/music";
+import type {
+	Artist,
+	Genre,
+	Track,
+	CreateTrackPayload,
+	UpdateTrackPayload,
+} from "@/types/music";
 import type { Pagination } from "@/types/user";
-import { formatDate } from "@/utils/format";
 import { getErrorMessage } from "@/utils/error";
 import { cn } from "@/utils/cn";
 
@@ -130,8 +135,64 @@ function validateRange(
 	return null;
 }
 
-function buildPayload(form: TrackForm): UpsertTrackPayload {
-	const payload: UpsertTrackPayload = {
+function buildCreatePayload(form: TrackForm): CreateTrackPayload {
+	// trackName (required), artistIds (required min 1) — enforced by getFormValidationError
+	const payload: CreateTrackPayload = {
+		trackName: form.trackName.trim(),
+		isExplicit: form.isExplicit,
+		artistIds: form.artistIds,
+		genreIds: form.genreIds,
+	};
+
+	const albumName = form.albumName.trim();
+	if (albumName) payload.albumName = albumName;
+
+	const lyrics = form.lyrics.trim();
+	if (lyrics) payload.lyrics = lyrics;
+
+	const popularity = parseOptionalInteger(form.popularity);
+	if (popularity !== undefined) payload.popularity = popularity;
+
+	const durationMs = parseOptionalInteger(form.durationMs);
+	if (durationMs !== undefined) payload.durationMs = durationMs;
+
+	const musicalKey = parseOptionalInteger(form.key);
+	if (musicalKey !== undefined) payload.key = musicalKey;
+
+	const danceability = parseOptionalFloat(form.danceability);
+	if (danceability !== undefined) payload.danceability = danceability;
+
+	const energy = parseOptionalFloat(form.energy);
+	if (energy !== undefined) payload.energy = energy;
+
+	const loudness = parseOptionalFloat(form.loudness);
+	if (loudness !== undefined) payload.loudness = loudness;
+
+	const speechiness = parseOptionalFloat(form.speechiness);
+	if (speechiness !== undefined) payload.speechiness = speechiness;
+
+	const acousticness = parseOptionalFloat(form.acousticness);
+	if (acousticness !== undefined) payload.acousticness = acousticness;
+
+	const instrumentalness = parseOptionalFloat(form.instrumentalness);
+	if (instrumentalness !== undefined)
+		payload.instrumentalness = instrumentalness;
+
+	const liveness = parseOptionalFloat(form.liveness);
+	if (liveness !== undefined) payload.liveness = liveness;
+
+	const valence = parseOptionalFloat(form.valence);
+	if (valence !== undefined) payload.valence = valence;
+
+	const tempo = parseOptionalFloat(form.tempo);
+	if (tempo !== undefined) payload.tempo = tempo;
+
+	return payload;
+}
+
+function buildUpdatePayload(form: TrackForm): UpdateTrackPayload {
+	// All optional — must send at least 1 field (validated in handleSubmit)
+	const payload: UpdateTrackPayload = {
 		trackName: form.trackName.trim(),
 		isExplicit: form.isExplicit,
 		artistIds: form.artistIds,
@@ -341,13 +402,15 @@ export default function TracksTab() {
 
 		setFormLoading(true);
 
-		const payload = buildPayload(form);
-
 		try {
 			if (modal.item) {
-				await musicService.updateTrack(modal.item.id, payload);
+				// PATCH — UpdateTrackPayload (all optional)
+				const updatePayload = buildUpdatePayload(form);
+				await musicService.updateTrack(modal.item.id, updatePayload);
 			} else {
-				await musicService.createTrack(payload);
+				// POST — CreateTrackPayload (trackName + artistIds required)
+				const createPayload = buildCreatePayload(form);
+				await musicService.createTrack(createPayload);
 			}
 
 			closeModal();
@@ -439,24 +502,20 @@ export default function TracksTab() {
 				<table className="music-table">
 					<thead>
 						<tr>
-							<th>Track</th>
-							<th>Artists</th>
-							<th>Genres</th>
-							<th>Album</th>
-							<th>Duration</th>
-							<th>Popularity</th>
-							<th>Explicit</th>
-							<th>Created</th>
-							<th />
+							<th className="music-col--track">Track</th>
+							<th className="music-col--genres">Genres</th>
+							<th className="music-col--duration">Duration</th>
+							<th className="music-col--popularity">Popularity</th>
+							<th className="music-col--actions" />
 						</tr>
 					</thead>
 					<tbody>
 						{loading ? (
-							Array.from({ length: 5 }).map((_, i) => (
+							Array.from({ length: 8 }).map((_, i) => (
 								<tr
 									key={i}
 									className="music-table__skeleton-row">
-									{Array.from({ length: 9 }).map((__, j) => (
+									{Array.from({ length: 5 }).map((__, j) => (
 										<td key={j}>
 											<span className="skeleton" />
 										</td>
@@ -466,7 +525,7 @@ export default function TracksTab() {
 						) : tracks.length === 0 ? (
 							<tr>
 								<td
-									colSpan={9}
+									colSpan={5}
 									className="music-table__empty">
 									No tracks found.
 								</td>
@@ -474,39 +533,100 @@ export default function TracksTab() {
 						) : (
 							tracks.map((t) => (
 								<tr key={t.id}>
-									<td>{t.trackName}</td>
-									<td className="music-table__desc">
-										{t.artists
-											.map((artist) => artist.name)
-											.join(", ") || "—"}
+									{/* Track — name + artists + album sub-text + explicit badge */}
+									<td className="music-col--track">
+										<div className="track-cell">
+											<div className="track-cell__title">
+												{t.isExplicit && (
+													<span
+														className="track-cell__explicit"
+														title="Explicit">
+														E
+													</span>
+												)}
+												<span className="track-cell__name">
+													{t.trackName}
+												</span>
+											</div>
+											<div className="track-cell__meta">
+												{t.artists
+													.map((a) => a.name)
+													.join(", ") || "—"}
+												{t.albumName && (
+													<>
+														<span className="track-cell__dot">·</span>
+														<span className="track-cell__album">
+															{t.albumName}
+														</span>
+													</>
+												)}
+											</div>
+										</div>
 									</td>
-									<td className="music-table__desc">
-										{t.genres
-											.map((genre) => genre.name)
-											.join(", ") || "—"}
+
+									{/* Genres — pill tags */}
+									<td className="music-col--genres">
+										<div className="genre-pills">
+											{t.genres.length > 0 ? (
+												t.genres.slice(0, 2).map((g) => (
+													<span
+														key={g.id}
+														className="genre-pill">
+														{g.name}
+													</span>
+												))
+											) : (
+												<span className="track-cell__meta">—</span>
+											)}
+											{t.genres.length > 2 && (
+												<span
+													className="genre-pill genre-pill--more"
+													title={t.genres
+														.slice(2)
+														.map((g) => g.name)
+														.join(", ")}>
+													+{t.genres.length - 2}
+												</span>
+											)}
+										</div>
 									</td>
-									<td>{t.albumName ?? "—"}</td>
-									<td className="music-table__date">
+
+									{/* Duration */}
+									<td className="music-col--duration music-table__date">
 										{formatDurationMs(t.durationMs)}
 									</td>
-									<td className="music-table__num">
-										{t.popularity ?? "—"}
+
+									{/* Popularity mini bar */}
+									<td className="music-col--popularity">
+										{t.popularity !== null ? (
+											<div className="popularity-bar">
+												<div
+													className="popularity-bar__fill"
+													style={{
+														width: `${t.popularity}%`,
+													}}
+												/>
+												<span className="popularity-bar__label">
+													{t.popularity}
+												</span>
+											</div>
+										) : (
+											<span className="track-cell__meta">—</span>
+										)}
 									</td>
-									<td>{t.isExplicit ? "Yes" : "No"}</td>
-									<td className="music-table__date">
-										{formatDate(t.createdAt)}
-									</td>
-									<td>
+
+									{/* Actions */}
+									<td className="music-col--actions">
 										<div className="music-table__actions">
 											<button
 												className="action-btn action-btn--edit"
-												title="Edit"
+												title="Edit track"
 												onClick={() => openEdit(t)}>
 												✏️
 											</button>
 											<button
 												className="action-btn action-btn--delete"
-												title="Delete"
+												title="Delete track"
 												onClick={() => handleDelete(t)}>
 												🗑️
 											</button>
@@ -518,6 +638,7 @@ export default function TracksTab() {
 					</tbody>
 				</table>
 			</div>
+
 
 			{pagination && pagination.totalPages > 1 && (
 				<div className="music-pagination">
