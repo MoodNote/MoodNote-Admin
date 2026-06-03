@@ -2,9 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import type { FormEvent } from "react";
 import { musicService } from "@/services";
 import type { Genre } from "@/types/music";
-import type { Pagination } from "@/types/user";
+import type { Pagination as PaginationType } from "@/types/user";
 import { getErrorMessage } from "@/utils/error";
-import { cn } from "@/utils/cn";
+import { notifySuccess, notifyError } from "@/utils/toast";
+import Modal from "@/components/Modal";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import Pagination from "@/components/Pagination";
 
 
 interface ModalState {
@@ -12,23 +15,10 @@ interface ModalState {
 	item: Genre | null;
 }
 
-function buildPageNumbers(
-	currentPage: number,
-	totalPages: number,
-): (number | "...")[] {
-	if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
-	const pages: (number | "...")[] = [1];
-	if (currentPage > 3) pages.push("...");
-	for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) pages.push(i);
-	if (currentPage < totalPages - 2) pages.push("...");
-	pages.push(totalPages);
-	return pages;
-}
-
 
 export default function GenresTab() {
 	const [genres, setGenres] = useState<Genre[]>([]);
-	const [pagination, setPagination] = useState<Pagination | null>(null);
+	const [pagination, setPagination] = useState<PaginationType | null>(null);
 	const [search, setSearch] = useState("");
 	const [page, setPage] = useState(1);
 	const [loading, setLoading] = useState(true);
@@ -39,6 +29,10 @@ export default function GenresTab() {
 	const [formName, setFormName] = useState("");
 	const [formError, setFormError] = useState("");
 	const [formLoading, setFormLoading] = useState(false);
+
+	// Delete confirmation
+	const [deleteTarget, setDeleteTarget] = useState<Genre | null>(null);
+	const [deleting, setDeleting] = useState(false);
 
 	const fetchGenres = async (currentPage: number, currentSearch: string) => {
 		setLoading(true);
@@ -108,6 +102,7 @@ export default function GenresTab() {
 
 		setFormLoading(true);
 		const name = formName.trim();
+		const isEdit = modal.item !== null;
 
 		try {
 			if (modal.item) {
@@ -116,6 +111,7 @@ export default function GenresTab() {
 				await musicService.createGenre(name);
 			}
 			closeModal();
+			notifySuccess(isEdit ? "Genre updated." : "Genre created.");
 			fetchGenres(page, search);
 		} catch (error: unknown) {
 			setFormError(
@@ -126,27 +122,29 @@ export default function GenresTab() {
 		}
 	};
 
-	const handleDelete = async (item: Genre) => {
-		if (
-			!window.confirm(
-				`Delete genre "${item.name}"? This cannot be undone.`,
-			)
-		)
-			return;
+	const handleConfirmDelete = async () => {
+		if (!deleteTarget) return;
+		setDeleting(true);
 		try {
-			await musicService.deleteGenre(item.id);
+			await musicService.deleteGenre(deleteTarget.id);
+			notifySuccess(`Deleted "${deleteTarget.name}".`);
+			setDeleteTarget(null);
 			fetchGenres(page, search);
 		} catch (error: unknown) {
-			setError(
-				getErrorMessage(error, `Failed to delete "${item.name}".`),
-			);
+			notifyError(error, `Failed to delete "${deleteTarget.name}".`);
+		} finally {
+			setDeleting(false);
 		}
 	};
 
 	return (
 		<div>
 			<div className="music-section__toolbar">
+				<label htmlFor="genre-search" className="sr-only">
+					Search genres
+				</label>
 				<input
+					id="genre-search"
 					type="search"
 					className="music-section__search"
 					placeholder="Search genres..."
@@ -163,7 +161,7 @@ export default function GenresTab() {
 			{error && <p className="music-section__error">{error}</p>}
 
 			<div className="music-table-wrapper">
-				<table className="music-table">
+				<table className="music-table" aria-busy={loading}>
 					<thead>
 						<tr>
 							<th className="music-col--genre-name">Name</th>
@@ -208,13 +206,15 @@ export default function GenresTab() {
 											<button
 												className="action-btn action-btn--edit"
 												title="Edit"
+												aria-label={`Edit ${g.name}`}
 												onClick={() => openEdit(g)}>
 												✏️
 											</button>
 											<button
 												className="action-btn action-btn--delete"
 												title="Delete"
-												onClick={() => handleDelete(g)}>
+												aria-label={`Delete ${g.name}`}
+												onClick={() => setDeleteTarget(g)}>
 												🗑️
 											</button>
 										</div>
@@ -226,97 +226,83 @@ export default function GenresTab() {
 				</table>
 			</div>
 
-			{pagination && pagination.totalPages > 1 && (
-				<div className="music-pagination">
-					<button
-						className="music-pagination__btn"
-						disabled={page <= 1}
-						onClick={() => setPage((p) => p - 1)}
-						aria-label="Previous page">
-						←
-					</button>
-					{buildPageNumbers(page, pagination.totalPages).map((p, idx) =>
-						p === "..." ? (
-							<span key={`e-${idx}`} className="music-pagination__ellipsis">…</span>
-						) : (
-							<button
-								key={p}
-								className={cn("music-pagination__btn", p === page && "music-pagination__btn--active")}
-								onClick={() => setPage(p)}>
-								{p}
-							</button>
-						)
-					)}
-					<button
-						className="music-pagination__btn"
-						disabled={page >= pagination.totalPages}
-						onClick={() => setPage((p) => p + 1)}
-						aria-label="Next page">
-						→
-					</button>
-					<span className="music-pagination__info">
-						{pagination.total.toLocaleString()} genres
-					</span>
-				</div>
+			{pagination && (
+				<Pagination
+					page={page}
+					totalPages={pagination.totalPages}
+					total={pagination.total}
+					itemLabel="genres"
+					onPageChange={setPage}
+				/>
 			)}
 
-			{modal.open && (
-				<div
-					className="music-modal-overlay"
-					onClick={closeModal}>
-					<div
-						className="music-modal"
-						onClick={(e) => e.stopPropagation()}>
-						<h3 className="music-modal__title">
-							{modal.item ? "Edit genre" : "Add genre"}
-						</h3>
-						<form
-							onSubmit={handleSubmit}
-							noValidate>
-							{formError && (
-								<p className="music-modal__error">
-									{formError}
-								</p>
-							)}
-							<div className="music-modal__group">
-								<label
-									className="music-modal__label"
-									htmlFor="genre-name">
-									Name *
-								</label>
-								<input
-									id="genre-name"
-									className="music-modal__input"
-									maxLength={100}
-									value={formName}
-									onChange={(e) =>
-										setFormName(e.target.value)
-									}
-									placeholder="e.g. Pop, Rock..."
-								/>
-							</div>
-							<div className="music-modal__actions">
-								<button
-									type="button"
-									className="music-modal__cancel"
-									onClick={closeModal}>
-									Cancel
-								</button>
-								<button
-									type="submit"
-									className="music-modal__submit"
-									disabled={formLoading}>
-									{formLoading
-										? "Saving..."
-										: modal.item
-											? "Save changes"
-											: "Add genre"}
-								</button>
-							</div>
-						</form>
+			<Modal
+				open={modal.open}
+				onOpenChange={(o) => {
+					if (!o) closeModal();
+				}}
+				title={modal.item ? "Edit genre" : "Add genre"}
+				titleClassName="music-modal__title"
+				contentClassName="music-modal">
+				<form onSubmit={handleSubmit} noValidate>
+					{formError && (
+						<p className="music-modal__error">{formError}</p>
+					)}
+					<div className="music-modal__group">
+						<label
+							className="music-modal__label"
+							htmlFor="genre-name">
+							Name *
+						</label>
+						<input
+							id="genre-name"
+							className="music-modal__input"
+							maxLength={100}
+							value={formName}
+							onChange={(e) => setFormName(e.target.value)}
+							placeholder="e.g. Pop, Rock..."
+						/>
 					</div>
-				</div>
-			)}
+					<div className="music-modal__actions">
+						<button
+							type="button"
+							className="music-modal__cancel"
+							onClick={closeModal}>
+							Cancel
+						</button>
+						<button
+							type="submit"
+							className="music-modal__submit"
+							disabled={formLoading}>
+							{formLoading && (
+								<span className="spinner" aria-hidden="true" />
+							)}
+							{formLoading
+								? "Saving..."
+								: modal.item
+									? "Save changes"
+									: "Add genre"}
+						</button>
+					</div>
+				</form>
+			</Modal>
+
+			<ConfirmDialog
+				open={deleteTarget !== null}
+				onOpenChange={(o) => {
+					if (!o) setDeleteTarget(null);
+				}}
+				title="Delete genre"
+				description={
+					deleteTarget
+						? `Delete "${deleteTarget.name}"? This cannot be undone.`
+						: undefined
+				}
+				confirmLabel="Delete"
+				variant="danger"
+				loading={deleting}
+				onConfirm={handleConfirmDelete}
+			/>
 		</div>
 	);
 }

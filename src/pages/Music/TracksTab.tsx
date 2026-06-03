@@ -8,27 +8,17 @@ import type {
 	CreateTrackPayload,
 	UpdateTrackPayload,
 } from "@/types/music";
-import type { Pagination } from "@/types/user";
+import type { Pagination as PaginationType } from "@/types/user";
 import { getErrorMessage } from "@/utils/error";
-import { cn } from "@/utils/cn";
+import { notifySuccess, notifyError } from "@/utils/toast";
+import Modal from "@/components/Modal";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import Pagination from "@/components/Pagination";
 
 
 interface ModalState {
 	open: boolean;
 	item: Track | null;
-}
-
-function buildPageNumbers(
-	currentPage: number,
-	totalPages: number,
-): (number | "...")[] {
-	if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
-	const pages: (number | "...")[] = [1];
-	if (currentPage > 3) pages.push("...");
-	for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) pages.push(i);
-	if (currentPage < totalPages - 2) pages.push("...");
-	pages.push(totalPages);
-	return pages;
 }
 
 
@@ -292,7 +282,7 @@ function getFormValidationError(form: TrackForm): string | null {
 
 export default function TracksTab() {
 	const [tracks, setTracks] = useState<Track[]>([]);
-	const [pagination, setPagination] = useState<Pagination | null>(null);
+	const [pagination, setPagination] = useState<PaginationType | null>(null);
 	const [search, setSearch] = useState("");
 	const [filterGenreId, setFilterGenreId] = useState("");
 	const [page, setPage] = useState(1);
@@ -309,6 +299,10 @@ export default function TracksTab() {
 	const [formError, setFormError] = useState("");
 	const [formLoading, setFormLoading] = useState(false);
 	const [csvNotice, setCsvNotice] = useState("");
+
+	// Delete confirmation
+	const [deleteTarget, setDeleteTarget] = useState<Track | null>(null);
+	const [deleting, setDeleting] = useState(false);
 
 	const fetchTracks = async (
 		currentPage: number,
@@ -401,6 +395,7 @@ export default function TracksTab() {
 		}
 
 		setFormLoading(true);
+		const isEdit = modal.item !== null;
 
 		try {
 			if (modal.item) {
@@ -414,7 +409,7 @@ export default function TracksTab() {
 			}
 
 			closeModal();
-
+			notifySuccess(isEdit ? "Track updated." : "Track created.");
 			fetchTracks(page, search, filterGenreId);
 		} catch (error: unknown) {
 			setFormError(
@@ -425,20 +420,18 @@ export default function TracksTab() {
 		}
 	};
 
-	const handleDelete = async (item: Track) => {
-		if (
-			!window.confirm(
-				`Delete track "${item.trackName}"? This cannot be undone.`,
-			)
-		)
-			return;
+	const handleConfirmDelete = async () => {
+		if (!deleteTarget) return;
+		setDeleting(true);
 		try {
-			await musicService.deleteTrack(item.id);
+			await musicService.deleteTrack(deleteTarget.id);
+			notifySuccess(`Deleted "${deleteTarget.trackName}".`);
+			setDeleteTarget(null);
 			fetchTracks(page, search, filterGenreId);
 		} catch (error: unknown) {
-			setError(
-				getErrorMessage(error, `Failed to delete "${item.trackName}".`),
-			);
+			notifyError(error, `Failed to delete "${deleteTarget.trackName}".`);
+		} finally {
+			setDeleting(false);
 		}
 	};
 
@@ -456,7 +449,11 @@ export default function TracksTab() {
 	return (
 		<div>
 			<div className="music-section__toolbar">
+				<label htmlFor="track-search" className="sr-only">
+					Search tracks
+				</label>
 				<input
+					id="track-search"
 					type="search"
 					className="music-section__search"
 					placeholder="Search tracks..."
@@ -465,6 +462,7 @@ export default function TracksTab() {
 				/>
 				<select
 					className="music-section__filter"
+					aria-label="Filter by genre"
 					value={filterGenreId}
 					onChange={(e) => handleFilterChange(e.target.value)}>
 					<option value="">All genres</option>
@@ -499,7 +497,7 @@ export default function TracksTab() {
 			{csvNotice && <p className="music-section__notice">{csvNotice}</p>}
 
 			<div className="music-table-wrapper">
-				<table className="music-table">
+				<table className="music-table" aria-busy={loading}>
 					<thead>
 						<tr>
 							<th className="music-col--track">Track</th>
@@ -621,13 +619,15 @@ export default function TracksTab() {
 											<button
 												className="action-btn action-btn--edit"
 												title="Edit track"
+												aria-label={`Edit ${t.trackName}`}
 												onClick={() => openEdit(t)}>
 												✏️
 											</button>
 											<button
 												className="action-btn action-btn--delete"
 												title="Delete track"
-												onClick={() => handleDelete(t)}>
+												aria-label={`Delete ${t.trackName}`}
+												onClick={() => setDeleteTarget(t)}>
 												🗑️
 											</button>
 										</div>
@@ -639,509 +639,489 @@ export default function TracksTab() {
 				</table>
 			</div>
 
+			{pagination && (
+				<Pagination
+					page={page}
+					totalPages={pagination.totalPages}
+					total={pagination.total}
+					itemLabel="tracks"
+					onPageChange={setPage}
+				/>
+			)}
 
-			{pagination && pagination.totalPages > 1 && (
-				<div className="music-pagination">
-					<button
-						className="music-pagination__btn"
-						disabled={page <= 1}
-						onClick={() => setPage((p) => p - 1)}
-						aria-label="Previous page">
-						←
-					</button>
-					{buildPageNumbers(page, pagination.totalPages).map((p, idx) =>
-						p === "..." ? (
-							<span key={`e-${idx}`} className="music-pagination__ellipsis">…</span>
-						) : (
-							<button
-								key={p}
-								className={cn("music-pagination__btn", p === page && "music-pagination__btn--active")}
-								onClick={() => setPage(p)}>
-								{p}
-							</button>
-						)
+			<Modal
+				open={modal.open}
+				onOpenChange={(o) => {
+					if (!o) closeModal();
+				}}
+				title={modal.item ? "Edit track" : "Add track"}
+				titleClassName="music-modal__title"
+				contentClassName="music-modal">
+				<form
+					onSubmit={handleSubmit}
+					noValidate>
+					{formError && (
+						<p className="music-modal__error">{formError}</p>
 					)}
-					<button
-						className="music-pagination__btn"
-						disabled={page >= pagination.totalPages}
-						onClick={() => setPage((p) => p + 1)}
-						aria-label="Next page">
-						→
-					</button>
-					<span className="music-pagination__info">
-						{pagination.total.toLocaleString()} tracks
-					</span>
-				</div>
-			)}
 
-			{modal.open && (
-				<div
-					className="music-modal-overlay"
-					onClick={closeModal}>
-					<div
-						className="music-modal"
-						onClick={(e) => e.stopPropagation()}>
-						<h3 className="music-modal__title">
-							{modal.item ? "Edit track" : "Add track"}
-						</h3>
+					<div className="music-modal__grid">
+						<div className="music-modal__group">
+							<label
+								className="music-modal__label"
+								htmlFor="track-name">
+								Track name *
+							</label>
+							<input
+								id="track-name"
+								className="music-modal__input"
+								maxLength={300}
+								value={form.trackName}
+								onChange={(e) =>
+									setForm((f) => ({
+										...f,
+										trackName: e.target.value,
+									}))
+								}
+								placeholder="Track name..."
+							/>
+						</div>
 
-						<form
-							onSubmit={handleSubmit}
-							noValidate>
-							{formError && (
-								<p className="music-modal__error">
-									{formError}
-								</p>
-							)}
-
-							<div className="music-modal__grid">
-								<div className="music-modal__group">
-									<label
-										className="music-modal__label"
-										htmlFor="track-name">
-										Track name *
-									</label>
-									<input
-										id="track-name"
-										className="music-modal__input"
-										maxLength={300}
-										value={form.trackName}
-										onChange={(e) =>
-											setForm((f) => ({
-												...f,
-												trackName: e.target.value,
-											}))
-										}
-										placeholder="Track name..."
-									/>
-								</div>
-
-								<div className="music-modal__group">
-									<label
-										className="music-modal__label"
-										htmlFor="track-album">
-										Album name
-									</label>
-									<input
-										id="track-album"
-										className="music-modal__input"
-										maxLength={300}
-										value={form.albumName}
-										onChange={(e) =>
-											setForm((f) => ({
-												...f,
-												albumName: e.target.value,
-											}))
-										}
-										placeholder="Album name..."
-									/>
-								</div>
-							</div>
-
-							<div className="music-modal__grid">
-								<div className="music-modal__group">
-									<label
-										className="music-modal__label"
-										htmlFor="track-popularity">
-										Popularity (0-100)
-									</label>
-									<input
-										id="track-popularity"
-										type="number"
-										min={0}
-										max={100}
-										className="music-modal__input"
-										value={form.popularity}
-										onChange={(e) =>
-											setForm((f) => ({
-												...f,
-												popularity: e.target.value,
-											}))
-										}
-										placeholder="e.g. 85"
-									/>
-								</div>
-
-								<div className="music-modal__group">
-									<label
-										className="music-modal__label"
-										htmlFor="track-duration-ms">
-										Duration (ms)
-									</label>
-									<input
-										id="track-duration-ms"
-										type="number"
-										min={1}
-										className="music-modal__input"
-										value={form.durationMs}
-										onChange={(e) =>
-											setForm((f) => ({
-												...f,
-												durationMs: e.target.value,
-											}))
-										}
-										placeholder="e.g. 265000"
-									/>
-								</div>
-							</div>
-
-							<div className="music-modal__grid">
-								<div className="music-modal__group">
-									<label
-										className="music-modal__label"
-										htmlFor="track-artists">
-										Artists * (hold Ctrl/Cmd for
-										multi-select)
-									</label>
-									<select
-										id="track-artists"
-										multiple
-										className="music-modal__select music-modal__select--multi"
-										value={form.artistIds}
-										onChange={(e) =>
-											handleMultiSelectChange(
-												e,
-												"artistIds",
-											)
-										}>
-										{allArtists.map((artist) => (
-											<option
-												key={artist.id}
-												value={artist.id}>
-												{artist.name}
-											</option>
-										))}
-									</select>
-								</div>
-
-								<div className="music-modal__group">
-									<label
-										className="music-modal__label"
-										htmlFor="track-genres">
-										Genres (hold Ctrl/Cmd for multi-select)
-									</label>
-									<select
-										id="track-genres"
-										multiple
-										className="music-modal__select music-modal__select--multi"
-										value={form.genreIds}
-										onChange={(e) =>
-											handleMultiSelectChange(
-												e,
-												"genreIds",
-											)
-										}>
-										{allGenres.map((genre) => (
-											<option
-												key={genre.id}
-												value={genre.id}>
-												{genre.name}
-											</option>
-										))}
-									</select>
-								</div>
-							</div>
-
-							<div className="music-modal__group music-modal__group--checkbox">
-								<label className="music-modal__label">
-									<input
-										type="checkbox"
-										checked={form.isExplicit}
-										onChange={(e) =>
-											setForm((f) => ({
-												...f,
-												isExplicit: e.target.checked,
-											}))
-										}
-										className="music-modal__checkbox"
-									/>
-									Explicit content
-								</label>
-							</div>
-
-							<div className="music-modal__section-title">
-								Audio features
-							</div>
-
-							<div className="music-modal__grid">
-								<div className="music-modal__group">
-									<label
-										className="music-modal__label"
-										htmlFor="track-danceability">
-										Danceability (0-1)
-									</label>
-									<input
-										id="track-danceability"
-										type="number"
-										step="0.01"
-										min={0}
-										max={1}
-										className="music-modal__input"
-										value={form.danceability}
-										onChange={(e) =>
-											setForm((f) => ({
-												...f,
-												danceability: e.target.value,
-											}))
-										}
-									/>
-								</div>
-
-								<div className="music-modal__group">
-									<label
-										className="music-modal__label"
-										htmlFor="track-energy">
-										Energy (0-1)
-									</label>
-									<input
-										id="track-energy"
-										type="number"
-										step="0.01"
-										min={0}
-										max={1}
-										className="music-modal__input"
-										value={form.energy}
-										onChange={(e) =>
-											setForm((f) => ({
-												...f,
-												energy: e.target.value,
-											}))
-										}
-									/>
-								</div>
-							</div>
-
-							<div className="music-modal__grid">
-								<div className="music-modal__group">
-									<label
-										className="music-modal__label"
-										htmlFor="track-key">
-										Key (0-11)
-									</label>
-									<input
-										id="track-key"
-										type="number"
-										min={0}
-										max={11}
-										className="music-modal__input"
-										value={form.key}
-										onChange={(e) =>
-											setForm((f) => ({
-												...f,
-												key: e.target.value,
-											}))
-										}
-									/>
-								</div>
-
-								<div className="music-modal__group">
-									<label
-										className="music-modal__label"
-										htmlFor="track-loudness">
-										Loudness (dB)
-									</label>
-									<input
-										id="track-loudness"
-										type="number"
-										step="0.1"
-										className="music-modal__input"
-										value={form.loudness}
-										onChange={(e) =>
-											setForm((f) => ({
-												...f,
-												loudness: e.target.value,
-											}))
-										}
-									/>
-								</div>
-							</div>
-
-							<div className="music-modal__grid">
-								<div className="music-modal__group">
-									<label
-										className="music-modal__label"
-										htmlFor="track-speechiness">
-										Speechiness (0-1)
-									</label>
-									<input
-										id="track-speechiness"
-										type="number"
-										step="0.01"
-										min={0}
-										max={1}
-										className="music-modal__input"
-										value={form.speechiness}
-										onChange={(e) =>
-											setForm((f) => ({
-												...f,
-												speechiness: e.target.value,
-											}))
-										}
-									/>
-								</div>
-
-								<div className="music-modal__group">
-									<label
-										className="music-modal__label"
-										htmlFor="track-acousticness">
-										Acousticness (0-1)
-									</label>
-									<input
-										id="track-acousticness"
-										type="number"
-										step="0.01"
-										min={0}
-										max={1}
-										className="music-modal__input"
-										value={form.acousticness}
-										onChange={(e) =>
-											setForm((f) => ({
-												...f,
-												acousticness: e.target.value,
-											}))
-										}
-									/>
-								</div>
-							</div>
-
-							<div className="music-modal__grid">
-								<div className="music-modal__group">
-									<label
-										className="music-modal__label"
-										htmlFor="track-instrumentalness">
-										Instrumentalness (0-1)
-									</label>
-									<input
-										id="track-instrumentalness"
-										type="number"
-										step="0.01"
-										min={0}
-										max={1}
-										className="music-modal__input"
-										value={form.instrumentalness}
-										onChange={(e) =>
-											setForm((f) => ({
-												...f,
-												instrumentalness:
-													e.target.value,
-											}))
-										}
-									/>
-								</div>
-
-								<div className="music-modal__group">
-									<label
-										className="music-modal__label"
-										htmlFor="track-liveness">
-										Liveness (0-1)
-									</label>
-									<input
-										id="track-liveness"
-										type="number"
-										step="0.01"
-										min={0}
-										max={1}
-										className="music-modal__input"
-										value={form.liveness}
-										onChange={(e) =>
-											setForm((f) => ({
-												...f,
-												liveness: e.target.value,
-											}))
-										}
-									/>
-								</div>
-							</div>
-
-							<div className="music-modal__grid">
-								<div className="music-modal__group">
-									<label
-										className="music-modal__label"
-										htmlFor="track-valence">
-										Valence (0-1)
-									</label>
-									<input
-										id="track-valence"
-										type="number"
-										step="0.01"
-										min={0}
-										max={1}
-										className="music-modal__input"
-										value={form.valence}
-										onChange={(e) =>
-											setForm((f) => ({
-												...f,
-												valence: e.target.value,
-											}))
-										}
-									/>
-								</div>
-
-								<div className="music-modal__group">
-									<label
-										className="music-modal__label"
-										htmlFor="track-tempo">
-										Tempo (BPM)
-									</label>
-									<input
-										id="track-tempo"
-										type="number"
-										step="0.1"
-										className="music-modal__input"
-										value={form.tempo}
-										onChange={(e) =>
-											setForm((f) => ({
-												...f,
-												tempo: e.target.value,
-											}))
-										}
-									/>
-								</div>
-							</div>
-
-							<div className="music-modal__group">
-								<label
-									className="music-modal__label"
-									htmlFor="track-lyrics">
-									Lyrics
-								</label>
-								<textarea
-									id="track-lyrics"
-									className="music-modal__textarea"
-									rows={4}
-									value={form.lyrics}
-									onChange={(e) =>
-										setForm((f) => ({
-											...f,
-											lyrics: e.target.value,
-										}))
-									}
-									placeholder="Optional lyrics..."
-								/>
-							</div>
-
-							<div className="music-modal__actions">
-								<button
-									type="button"
-									className="music-modal__cancel"
-									onClick={closeModal}>
-									Cancel
-								</button>
-								<button
-									type="submit"
-									className="music-modal__submit"
-									disabled={formLoading}>
-									{formLoading
-										? "Saving..."
-										: modal.item
-											? "Save changes"
-											: "Add track"}
-								</button>
-							</div>
-						</form>
+						<div className="music-modal__group">
+							<label
+								className="music-modal__label"
+								htmlFor="track-album">
+								Album name
+							</label>
+							<input
+								id="track-album"
+								className="music-modal__input"
+								maxLength={300}
+								value={form.albumName}
+								onChange={(e) =>
+									setForm((f) => ({
+										...f,
+										albumName: e.target.value,
+									}))
+								}
+								placeholder="Album name..."
+							/>
+						</div>
 					</div>
-				</div>
-			)}
+
+					<div className="music-modal__grid">
+						<div className="music-modal__group">
+							<label
+								className="music-modal__label"
+								htmlFor="track-popularity">
+								Popularity (0-100)
+							</label>
+							<input
+								id="track-popularity"
+								type="number"
+								min={0}
+								max={100}
+								className="music-modal__input"
+								value={form.popularity}
+								onChange={(e) =>
+									setForm((f) => ({
+										...f,
+										popularity: e.target.value,
+									}))
+								}
+								placeholder="e.g. 85"
+							/>
+						</div>
+
+						<div className="music-modal__group">
+							<label
+								className="music-modal__label"
+								htmlFor="track-duration-ms">
+								Duration (ms)
+							</label>
+							<input
+								id="track-duration-ms"
+								type="number"
+								min={1}
+								className="music-modal__input"
+								value={form.durationMs}
+								onChange={(e) =>
+									setForm((f) => ({
+										...f,
+										durationMs: e.target.value,
+									}))
+								}
+								placeholder="e.g. 265000"
+							/>
+						</div>
+					</div>
+
+					<div className="music-modal__grid">
+						<div className="music-modal__group">
+							<label
+								className="music-modal__label"
+								htmlFor="track-artists">
+								Artists * (hold Ctrl/Cmd for multi-select)
+							</label>
+							<select
+								id="track-artists"
+								multiple
+								className="music-modal__select music-modal__select--multi"
+								value={form.artistIds}
+								onChange={(e) =>
+									handleMultiSelectChange(e, "artistIds")
+								}>
+								{allArtists.map((artist) => (
+									<option
+										key={artist.id}
+										value={artist.id}>
+										{artist.name}
+									</option>
+								))}
+							</select>
+						</div>
+
+						<div className="music-modal__group">
+							<label
+								className="music-modal__label"
+								htmlFor="track-genres">
+								Genres (hold Ctrl/Cmd for multi-select)
+							</label>
+							<select
+								id="track-genres"
+								multiple
+								className="music-modal__select music-modal__select--multi"
+								value={form.genreIds}
+								onChange={(e) =>
+									handleMultiSelectChange(e, "genreIds")
+								}>
+								{allGenres.map((genre) => (
+									<option
+										key={genre.id}
+										value={genre.id}>
+										{genre.name}
+									</option>
+								))}
+							</select>
+						</div>
+					</div>
+
+					<div className="music-modal__group music-modal__group--checkbox">
+						<label className="music-modal__label">
+							<input
+								type="checkbox"
+								checked={form.isExplicit}
+								onChange={(e) =>
+									setForm((f) => ({
+										...f,
+										isExplicit: e.target.checked,
+									}))
+								}
+								className="music-modal__checkbox"
+							/>
+							Explicit content
+						</label>
+					</div>
+
+					<div className="music-modal__section-title">
+						Audio features
+					</div>
+
+					<div className="music-modal__grid">
+						<div className="music-modal__group">
+							<label
+								className="music-modal__label"
+								htmlFor="track-danceability">
+								Danceability (0-1)
+							</label>
+							<input
+								id="track-danceability"
+								type="number"
+								step="0.01"
+								min={0}
+								max={1}
+								className="music-modal__input"
+								value={form.danceability}
+								onChange={(e) =>
+									setForm((f) => ({
+										...f,
+										danceability: e.target.value,
+									}))
+								}
+							/>
+						</div>
+
+						<div className="music-modal__group">
+							<label
+								className="music-modal__label"
+								htmlFor="track-energy">
+								Energy (0-1)
+							</label>
+							<input
+								id="track-energy"
+								type="number"
+								step="0.01"
+								min={0}
+								max={1}
+								className="music-modal__input"
+								value={form.energy}
+								onChange={(e) =>
+									setForm((f) => ({
+										...f,
+										energy: e.target.value,
+									}))
+								}
+							/>
+						</div>
+					</div>
+
+					<div className="music-modal__grid">
+						<div className="music-modal__group">
+							<label
+								className="music-modal__label"
+								htmlFor="track-key">
+								Key (0-11)
+							</label>
+							<input
+								id="track-key"
+								type="number"
+								min={0}
+								max={11}
+								className="music-modal__input"
+								value={form.key}
+								onChange={(e) =>
+									setForm((f) => ({
+										...f,
+										key: e.target.value,
+									}))
+								}
+							/>
+						</div>
+
+						<div className="music-modal__group">
+							<label
+								className="music-modal__label"
+								htmlFor="track-loudness">
+								Loudness (dB)
+							</label>
+							<input
+								id="track-loudness"
+								type="number"
+								step="0.1"
+								className="music-modal__input"
+								value={form.loudness}
+								onChange={(e) =>
+									setForm((f) => ({
+										...f,
+										loudness: e.target.value,
+									}))
+								}
+							/>
+						</div>
+					</div>
+
+					<div className="music-modal__grid">
+						<div className="music-modal__group">
+							<label
+								className="music-modal__label"
+								htmlFor="track-speechiness">
+								Speechiness (0-1)
+							</label>
+							<input
+								id="track-speechiness"
+								type="number"
+								step="0.01"
+								min={0}
+								max={1}
+								className="music-modal__input"
+								value={form.speechiness}
+								onChange={(e) =>
+									setForm((f) => ({
+										...f,
+										speechiness: e.target.value,
+									}))
+								}
+							/>
+						</div>
+
+						<div className="music-modal__group">
+							<label
+								className="music-modal__label"
+								htmlFor="track-acousticness">
+								Acousticness (0-1)
+							</label>
+							<input
+								id="track-acousticness"
+								type="number"
+								step="0.01"
+								min={0}
+								max={1}
+								className="music-modal__input"
+								value={form.acousticness}
+								onChange={(e) =>
+									setForm((f) => ({
+										...f,
+										acousticness: e.target.value,
+									}))
+								}
+							/>
+						</div>
+					</div>
+
+					<div className="music-modal__grid">
+						<div className="music-modal__group">
+							<label
+								className="music-modal__label"
+								htmlFor="track-instrumentalness">
+								Instrumentalness (0-1)
+							</label>
+							<input
+								id="track-instrumentalness"
+								type="number"
+								step="0.01"
+								min={0}
+								max={1}
+								className="music-modal__input"
+								value={form.instrumentalness}
+								onChange={(e) =>
+									setForm((f) => ({
+										...f,
+										instrumentalness: e.target.value,
+									}))
+								}
+							/>
+						</div>
+
+						<div className="music-modal__group">
+							<label
+								className="music-modal__label"
+								htmlFor="track-liveness">
+								Liveness (0-1)
+							</label>
+							<input
+								id="track-liveness"
+								type="number"
+								step="0.01"
+								min={0}
+								max={1}
+								className="music-modal__input"
+								value={form.liveness}
+								onChange={(e) =>
+									setForm((f) => ({
+										...f,
+										liveness: e.target.value,
+									}))
+								}
+							/>
+						</div>
+					</div>
+
+					<div className="music-modal__grid">
+						<div className="music-modal__group">
+							<label
+								className="music-modal__label"
+								htmlFor="track-valence">
+								Valence (0-1)
+							</label>
+							<input
+								id="track-valence"
+								type="number"
+								step="0.01"
+								min={0}
+								max={1}
+								className="music-modal__input"
+								value={form.valence}
+								onChange={(e) =>
+									setForm((f) => ({
+										...f,
+										valence: e.target.value,
+									}))
+								}
+							/>
+						</div>
+
+						<div className="music-modal__group">
+							<label
+								className="music-modal__label"
+								htmlFor="track-tempo">
+								Tempo (BPM)
+							</label>
+							<input
+								id="track-tempo"
+								type="number"
+								step="0.1"
+								className="music-modal__input"
+								value={form.tempo}
+								onChange={(e) =>
+									setForm((f) => ({
+										...f,
+										tempo: e.target.value,
+									}))
+								}
+							/>
+						</div>
+					</div>
+
+					<div className="music-modal__group">
+						<label
+							className="music-modal__label"
+							htmlFor="track-lyrics">
+							Lyrics
+						</label>
+						<textarea
+							id="track-lyrics"
+							className="music-modal__textarea"
+							rows={4}
+							value={form.lyrics}
+							onChange={(e) =>
+								setForm((f) => ({
+									...f,
+									lyrics: e.target.value,
+								}))
+							}
+							placeholder="Optional lyrics..."
+						/>
+					</div>
+
+					<div className="music-modal__actions">
+						<button
+							type="button"
+							className="music-modal__cancel"
+							onClick={closeModal}>
+							Cancel
+						</button>
+						<button
+							type="submit"
+							className="music-modal__submit"
+							disabled={formLoading}>
+							{formLoading && (
+								<span className="spinner" aria-hidden="true" />
+							)}
+							{formLoading
+								? "Saving..."
+								: modal.item
+									? "Save changes"
+									: "Add track"}
+						</button>
+					</div>
+				</form>
+			</Modal>
+
+			<ConfirmDialog
+				open={deleteTarget !== null}
+				onOpenChange={(o) => {
+					if (!o) setDeleteTarget(null);
+				}}
+				title="Delete track"
+				description={
+					deleteTarget
+						? `Delete "${deleteTarget.trackName}"? This cannot be undone.`
+						: undefined
+				}
+				confirmLabel="Delete"
+				variant="danger"
+				loading={deleting}
+				onConfirm={handleConfirmDelete}
+			/>
 		</div>
 	);
 }

@@ -246,6 +246,149 @@
 	border-color: var(--color-primary-light);
 }
 
+/* ── Visually hidden (screen-reader only) ── */
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* ── Spinner (inline button loader) ── */
+.spinner {
+	display: inline-block;
+	width: 1em;
+	height: 1em;
+	border: 2px solid currentColor;
+	border-right-color: transparent;
+	border-radius: var(--radius-full);
+	animation: app-spin 0.6s linear infinite;
+	vertical-align: -0.15em;
+	flex-shrink: 0;
+}
+
+/* ── Modal / dialog backdrop (Radix Dialog + AlertDialog) ── */
+.app-modal__overlay {
+	position: fixed;
+	inset: 0;
+	background: var(--color-bg-overlay);
+	z-index: var(--z-modal);
+	animation: app-fade-in var(--dur-fast) var(--ease-out);
+}
+
+/* ── Confirm dialog (Radix AlertDialog) ── */
+.app-confirm {
+	position: fixed;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	z-index: var(--z-modal);
+	width: min(440px, calc(100vw - 2 * var(--sp-4)));
+	max-height: calc(100vh - 2 * var(--sp-6));
+	overflow-y: auto;
+	background: var(--color-bg-card);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-xl);
+	box-shadow: var(--shadow-xl);
+	padding: var(--sp-6);
+	animation: app-modal-pop var(--dur-base) var(--ease-out);
+}
+
+.app-confirm__title {
+	font-size: var(--text-lg);
+	font-weight: 700;
+	color: var(--color-text);
+	margin-bottom: var(--sp-2);
+}
+
+.app-confirm__desc {
+	font-size: var(--text-sm);
+	color: var(--color-text-secondary);
+	line-height: 1.6;
+}
+
+.app-confirm__body {
+	margin-top: var(--sp-4);
+}
+
+.app-confirm__actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: var(--sp-3);
+	margin-top: var(--sp-5);
+}
+
+/* ── Pagination (shared) ── */
+.app-pagination {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--sp-1);
+	margin-top: var(--sp-5);
+	flex-wrap: wrap;
+}
+
+.app-pagination__btn {
+	min-width: 34px;
+	height: 34px;
+	padding: 0 var(--sp-2);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-sm);
+	background: var(--color-bg-card);
+	color: var(--color-text);
+	font-size: var(--text-sm);
+	cursor: pointer;
+	transition:
+		background var(--transition-colors),
+		border-color var(--transition-colors),
+		color var(--transition-colors);
+}
+
+.app-pagination__btn:hover:not(:disabled) {
+	background: var(--color-primary-light);
+	border-color: var(--color-primary);
+	color: var(--color-primary);
+}
+
+.app-pagination__btn--active {
+	background: var(--color-primary);
+	border-color: var(--color-primary);
+	color: #fff;
+	font-weight: 700;
+}
+
+.app-pagination__btn--active:hover:not(:disabled) {
+	background: var(--color-primary-hover);
+	color: #fff;
+}
+
+.app-pagination__btn:focus-visible {
+	outline: none;
+	box-shadow: var(--shadow-focus);
+}
+
+.app-pagination__btn:disabled {
+	opacity: 0.35;
+	cursor: not-allowed;
+}
+
+.app-pagination__ellipsis {
+	color: var(--color-text-muted);
+	font-size: var(--text-sm);
+	padding: 0 4px;
+}
+
+.app-pagination__info {
+	font-size: var(--text-xs);
+	color: var(--color-text-muted);
+	margin-left: var(--sp-3);
+}
+
 /* ── Responsive ── */
 @media (max-width: 920px) {
 	.page-header {

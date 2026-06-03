@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { notificationService } from "@/services";
 import type { AdminUser } from "@/types/user";
 import { getErrorMessage, isApiError } from "@/utils/error";
+import { notifySuccess } from "@/utils/toast";
 import UserMultiSelect from "@/components/UserMultiSelect/UserMultiSelect";
 import "./NotificationsPage.css";
 
@@ -52,7 +53,6 @@ export default function NotificationsPage() {
 	// Broadcast state
 	const [broadcast, setBroadcast] = useState<FormState>(EMPTY_FORM);
 	const [broadcastLoading, setBroadcastLoading] = useState(false);
-	const [broadcastResult, setBroadcastResult] = useState<string | null>(null);
 	const [broadcastError, setBroadcastError] = useState("");
 	const [broadcastMetadataRaw, setBroadcastMetadataRaw] = useState("");
 
@@ -60,14 +60,12 @@ export default function NotificationsPage() {
 	const [send, setSend] = useState<FormState>(EMPTY_FORM);
 	const [selectedUsers, setSelectedUsers] = useState<AdminUser[]>([]);
 	const [sendLoading, setSendLoading] = useState(false);
-	const [sendResult, setSendResult] = useState<string | null>(null);
 	const [sendError, setSendError] = useState("");
 	const [sendMetadataRaw, setSendMetadataRaw] = useState("");
 
 	const handleBroadcast = async (e: FormEvent) => {
 		e.preventDefault();
 		setBroadcastError("");
-		setBroadcastResult(null);
 
 		if (!broadcast.title.trim() || !broadcast.message.trim()) {
 			setBroadcastError("Title and message are required.");
@@ -96,7 +94,7 @@ export default function NotificationsPage() {
 				type: "SYSTEM",
 				metadata: parsedMetadata.metadata,
 			});
-			setBroadcastResult(`Sent to ${result.sent} users.`);
+			notifySuccess(`Broadcast sent to ${result.sent} users.`);
 			setBroadcast(EMPTY_FORM);
 			setBroadcastMetadataRaw("");
 		} catch (error: unknown) {
@@ -114,7 +112,6 @@ export default function NotificationsPage() {
 	const handleSend = async (e: FormEvent) => {
 		e.preventDefault();
 		setSendError("");
-		setSendResult(null);
 
 		const userIds = selectedUsers.map((u) => u.id);
 
@@ -157,7 +154,7 @@ export default function NotificationsPage() {
 				type: "SYSTEM",
 				metadata: parsedMetadata.metadata,
 			});
-			setSendResult(`Sent ${data.sent} / ${data.requested} requested.`);
+			notifySuccess(`Sent ${data.sent} / ${data.requested} requested.`);
 			setSend(EMPTY_FORM);
 			setSelectedUsers([]);
 			setSendMetadataRaw("");
@@ -209,11 +206,6 @@ export default function NotificationsPage() {
 						{broadcastError && (
 							<p className="notification-form__error">
 								{broadcastError}
-							</p>
-						)}
-						{broadcastResult && (
-							<p className="notification-form__success">
-								{broadcastResult}
 							</p>
 						)}
 
@@ -303,6 +295,9 @@ export default function NotificationsPage() {
 							type="submit"
 							className="notification-form__submit"
 							disabled={broadcastLoading}>
+							{broadcastLoading && (
+								<span className="spinner" aria-hidden="true" />
+							)}
 							{broadcastLoading ? "Sending..." : "Send broadcast"}
 						</button>
 					</form>
@@ -323,11 +318,6 @@ export default function NotificationsPage() {
 						{sendError && (
 							<p className="notification-form__error">
 								{sendError}
-							</p>
-						)}
-						{sendResult && (
-							<p className="notification-form__success">
-								{sendResult}
 							</p>
 						)}
 
@@ -434,6 +424,9 @@ export default function NotificationsPage() {
 							type="submit"
 							className="notification-form__submit"
 							disabled={sendLoading}>
+							{sendLoading && (
+								<span className="spinner" aria-hidden="true" />
+							)}
 							{sendLoading ? "Sending..." : "Send notification"}
 						</button>
 					</form>

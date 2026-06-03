@@ -2,10 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import type { FormEvent } from "react";
 import { musicService } from "@/services";
 import type { Artist } from "@/types/music";
-import type { Pagination } from "@/types/user";
+import type { Pagination as PaginationType } from "@/types/user";
 import { formatDate } from "@/utils/format";
 import { getErrorMessage } from "@/utils/error";
-import { cn } from "@/utils/cn";
+import { notifySuccess, notifyError } from "@/utils/toast";
+import Modal from "@/components/Modal";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import Pagination from "@/components/Pagination";
 
 
 interface ModalState {
@@ -13,23 +16,10 @@ interface ModalState {
 	item: Artist | null;
 }
 
-function buildPageNumbers(
-	currentPage: number,
-	totalPages: number,
-): (number | "...")[] {
-	if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
-	const pages: (number | "...")[] = [1];
-	if (currentPage > 3) pages.push("...");
-	for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) pages.push(i);
-	if (currentPage < totalPages - 2) pages.push("...");
-	pages.push(totalPages);
-	return pages;
-}
-
 
 export default function ArtistsTab() {
 	const [artists, setArtists] = useState<Artist[]>([]);
-	const [pagination, setPagination] = useState<Pagination | null>(null);
+	const [pagination, setPagination] = useState<PaginationType | null>(null);
 	const [search, setSearch] = useState("");
 	const [page, setPage] = useState(1);
 	const [loading, setLoading] = useState(true);
@@ -40,6 +30,10 @@ export default function ArtistsTab() {
 	const [formName, setFormName] = useState("");
 	const [formError, setFormError] = useState("");
 	const [formLoading, setFormLoading] = useState(false);
+
+	// Delete confirmation
+	const [deleteTarget, setDeleteTarget] = useState<Artist | null>(null);
+	const [deleting, setDeleting] = useState(false);
 
 	const fetchArtists = async (currentPage: number, currentSearch: string) => {
 		setLoading(true);
@@ -109,6 +103,7 @@ export default function ArtistsTab() {
 
 		setFormLoading(true);
 		const name = formName.trim();
+		const isEdit = modal.item !== null;
 
 		try {
 			if (modal.item) {
@@ -117,6 +112,7 @@ export default function ArtistsTab() {
 				await musicService.createArtist(name);
 			}
 			closeModal();
+			notifySuccess(isEdit ? "Artist updated." : "Artist created.");
 			fetchArtists(page, search);
 		} catch (error: unknown) {
 			setFormError(
@@ -127,27 +123,29 @@ export default function ArtistsTab() {
 		}
 	};
 
-	const handleDelete = async (item: Artist) => {
-		if (
-			!window.confirm(
-				`Delete artist "${item.name}"? This cannot be undone.`,
-			)
-		)
-			return;
+	const handleConfirmDelete = async () => {
+		if (!deleteTarget) return;
+		setDeleting(true);
 		try {
-			await musicService.deleteArtist(item.id);
+			await musicService.deleteArtist(deleteTarget.id);
+			notifySuccess(`Deleted "${deleteTarget.name}".`);
+			setDeleteTarget(null);
 			fetchArtists(page, search);
 		} catch (error: unknown) {
-			setError(
-				getErrorMessage(error, `Failed to delete "${item.name}".`),
-			);
+			notifyError(error, `Failed to delete "${deleteTarget.name}".`);
+		} finally {
+			setDeleting(false);
 		}
 	};
 
 	return (
 		<div>
 			<div className="music-section__toolbar">
+				<label htmlFor="artist-search" className="sr-only">
+					Search artists
+				</label>
 				<input
+					id="artist-search"
 					type="search"
 					className="music-section__search"
 					placeholder="Search artists..."
@@ -164,7 +162,7 @@ export default function ArtistsTab() {
 			{error && <p className="music-section__error">{error}</p>}
 
 			<div className="music-table-wrapper">
-				<table className="music-table">
+				<table className="music-table" aria-busy={loading}>
 					<thead>
 						<tr>
 							<th className="music-col--artist-name">Name</th>
@@ -221,13 +219,15 @@ export default function ArtistsTab() {
 											<button
 												className="action-btn action-btn--edit"
 												title="Edit"
+												aria-label={`Edit ${a.name}`}
 												onClick={() => openEdit(a)}>
 												✏️
 											</button>
 											<button
 												className="action-btn action-btn--delete"
 												title="Delete"
-												onClick={() => handleDelete(a)}>
+												aria-label={`Delete ${a.name}`}
+												onClick={() => setDeleteTarget(a)}>
 												🗑️
 											</button>
 										</div>
@@ -239,97 +239,83 @@ export default function ArtistsTab() {
 				</table>
 			</div>
 
-			{pagination && pagination.totalPages > 1 && (
-				<div className="music-pagination">
-					<button
-						className="music-pagination__btn"
-						disabled={page <= 1}
-						onClick={() => setPage((p) => p - 1)}
-						aria-label="Previous page">
-						←
-					</button>
-					{buildPageNumbers(page, pagination.totalPages).map((p, idx) =>
-						p === "..." ? (
-							<span key={`e-${idx}`} className="music-pagination__ellipsis">…</span>
-						) : (
-							<button
-								key={p}
-								className={cn("music-pagination__btn", p === page && "music-pagination__btn--active")}
-								onClick={() => setPage(p)}>
-								{p}
-							</button>
-						)
-					)}
-					<button
-						className="music-pagination__btn"
-						disabled={page >= pagination.totalPages}
-						onClick={() => setPage((p) => p + 1)}
-						aria-label="Next page">
-						→
-					</button>
-					<span className="music-pagination__info">
-						{pagination.total.toLocaleString()} artists
-					</span>
-				</div>
+			{pagination && (
+				<Pagination
+					page={page}
+					totalPages={pagination.totalPages}
+					total={pagination.total}
+					itemLabel="artists"
+					onPageChange={setPage}
+				/>
 			)}
 
-			{modal.open && (
-				<div
-					className="music-modal-overlay"
-					onClick={closeModal}>
-					<div
-						className="music-modal"
-						onClick={(e) => e.stopPropagation()}>
-						<h3 className="music-modal__title">
-							{modal.item ? "Edit artist" : "Add artist"}
-						</h3>
-						<form
-							onSubmit={handleSubmit}
-							noValidate>
-							{formError && (
-								<p className="music-modal__error">
-									{formError}
-								</p>
-							)}
-							<div className="music-modal__group">
-								<label
-									className="music-modal__label"
-									htmlFor="artist-name">
-									Name *
-								</label>
-								<input
-									id="artist-name"
-									className="music-modal__input"
-									maxLength={200}
-									value={formName}
-									onChange={(e) =>
-										setFormName(e.target.value)
-									}
-									placeholder="Artist name..."
-								/>
-							</div>
-							<div className="music-modal__actions">
-								<button
-									type="button"
-									className="music-modal__cancel"
-									onClick={closeModal}>
-									Cancel
-								</button>
-								<button
-									type="submit"
-									className="music-modal__submit"
-									disabled={formLoading}>
-									{formLoading
-										? "Saving..."
-										: modal.item
-											? "Save changes"
-											: "Add artist"}
-								</button>
-							</div>
-						</form>
+			<Modal
+				open={modal.open}
+				onOpenChange={(o) => {
+					if (!o) closeModal();
+				}}
+				title={modal.item ? "Edit artist" : "Add artist"}
+				titleClassName="music-modal__title"
+				contentClassName="music-modal">
+				<form onSubmit={handleSubmit} noValidate>
+					{formError && (
+						<p className="music-modal__error">{formError}</p>
+					)}
+					<div className="music-modal__group">
+						<label
+							className="music-modal__label"
+							htmlFor="artist-name">
+							Name *
+						</label>
+						<input
+							id="artist-name"
+							className="music-modal__input"
+							maxLength={200}
+							value={formName}
+							onChange={(e) => setFormName(e.target.value)}
+							placeholder="Artist name..."
+						/>
 					</div>
-				</div>
-			)}
+					<div className="music-modal__actions">
+						<button
+							type="button"
+							className="music-modal__cancel"
+							onClick={closeModal}>
+							Cancel
+						</button>
+						<button
+							type="submit"
+							className="music-modal__submit"
+							disabled={formLoading}>
+							{formLoading && (
+								<span className="spinner" aria-hidden="true" />
+							)}
+							{formLoading
+								? "Saving..."
+								: modal.item
+									? "Save changes"
+									: "Add artist"}
+						</button>
+					</div>
+				</form>
+			</Modal>
+
+			<ConfirmDialog
+				open={deleteTarget !== null}
+				onOpenChange={(o) => {
+					if (!o) setDeleteTarget(null);
+				}}
+				title="Delete artist"
+				description={
+					deleteTarget
+						? `Delete "${deleteTarget.name}"? This cannot be undone.`
+						: undefined
+				}
+				confirmLabel="Delete"
+				variant="danger"
+				loading={deleting}
+				onConfirm={handleConfirmDelete}
+			/>
 		</div>
 	);
 }

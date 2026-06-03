@@ -111,6 +111,9 @@ export default function LoginPage() {
 						type="submit"
 						className="login-form__submit"
 						disabled={loading}>
+						{loading && (
+							<span className="spinner" aria-hidden="true" />
+						)}
 						{loading ? "Signing in..." : "Sign in"}
 					</button>
 				</form>

@@ -1,10 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { usersService } from "@/services";
-import type { AdminUser, AdminUserDetail, Pagination } from "@/types/user";
+import type { AdminUser, AdminUserDetail, Pagination as PaginationType } from "@/types/user";
 import { formatDate, formatRelativeTime } from "@/utils/format";
 import { getInitials } from "@/utils/string";
 import { cn } from "@/utils/cn";
 import { getErrorMessage } from "@/utils/error";
+import { notifySuccess, notifyError } from "@/utils/toast";
+import Modal from "@/components/Modal";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import Pagination from "@/components/Pagination";
 import "./UsersPage.css";
 
 type ActiveFilter = "" | "true" | "false";
@@ -15,30 +19,9 @@ interface LockConfirmState {
 	reason: string;
 }
 
-function buildPageNumbers(
-	currentPage: number,
-	totalPages: number,
-): (number | "...")[] {
-	if (totalPages <= 7) {
-		return Array.from({ length: totalPages }, (_, i) => i + 1);
-	}
-	const pages: (number | "...")[] = [1];
-	if (currentPage > 3) pages.push("...");
-	for (
-		let i = Math.max(2, currentPage - 1);
-		i <= Math.min(totalPages - 1, currentPage + 1);
-		i++
-	) {
-		pages.push(i);
-	}
-	if (currentPage < totalPages - 2) pages.push("...");
-	pages.push(totalPages);
-	return pages;
-}
-
 export default function UsersPage() {
 	const [users, setUsers] = useState<AdminUser[]>([]);
-	const [pagination, setPagination] = useState<Pagination | null>(null);
+	const [pagination, setPagination] = useState<PaginationType | null>(null);
 	const [search, setSearch] = useState("");
 	const [activeFilter, setActiveFilter] = useState<ActiveFilter>("");
 	const [page, setPage] = useState(1);
@@ -129,7 +112,7 @@ export default function UsersPage() {
 
 	// ── Lock/Unlock user ────────────────────────────────────────────────────
 
-	/** Called when user clicks "Lock account" — opens confirm step */
+	/** Called when user clicks "Lock account" — opens confirm dialog */
 	const handleInitiateLock = () => {
 		setLockConfirm({ open: true, reason: "" });
 		setModalError("");
@@ -139,7 +122,6 @@ export default function UsersPage() {
 	const handleUnlock = async () => {
 		if (!selectedUser) return;
 		setStatusUpdating(true);
-		setModalError("");
 		try {
 			await usersService.updateUserStatus(selectedUser.id, true);
 			setSelectedUser((prev) => (prev ? { ...prev, isActive: true } : prev));
@@ -148,10 +130,9 @@ export default function UsersPage() {
 					u.id === selectedUser.id ? { ...u, isActive: true } : u,
 				),
 			);
+			notifySuccess(`Unlocked ${selectedUser.name}'s account.`);
 		} catch (error: unknown) {
-			setModalError(
-				getErrorMessage(error, "Failed to unlock account. Please try again."),
-			);
+			notifyError(error, "Failed to unlock account. Please try again.");
 		} finally {
 			setStatusUpdating(false);
 		}
@@ -161,7 +142,6 @@ export default function UsersPage() {
 	const handleConfirmLock = async () => {
 		if (!selectedUser) return;
 		setStatusUpdating(true);
-		setModalError("");
 		try {
 			await usersService.updateUserStatus(
 				selectedUser.id,
@@ -176,11 +156,10 @@ export default function UsersPage() {
 					u.id === selectedUser.id ? { ...u, isActive: false } : u,
 				),
 			);
+			notifySuccess(`Locked ${selectedUser.name}'s account.`);
 			setLockConfirm({ open: false, reason: "" });
 		} catch (error: unknown) {
-			setModalError(
-				getErrorMessage(error, "Failed to lock account. Please try again."),
-			);
+			notifyError(error, "Failed to lock account. Please try again.");
 		} finally {
 			setStatusUpdating(false);
 		}
@@ -191,9 +170,6 @@ export default function UsersPage() {
 	};
 
 	// ─────────────────────────────────────────────────────────────────────────
-
-	const pageNumbers =
-		pagination ? buildPageNumbers(page, pagination.totalPages) : [];
 
 	return (
 		<div className="users-page">
@@ -208,14 +184,22 @@ export default function UsersPage() {
 
 			{/* Controls — spec params only: search + isActive */}
 			<div className="users-page__controls">
+				<label htmlFor="users-search" className="sr-only">
+					Search users
+				</label>
 				<input
+					id="users-search"
 					type="search"
 					className="users-page__search"
 					placeholder="Search by email, username, or name..."
 					value={search}
 					onChange={(e) => handleSearchChange(e.target.value)}
 				/>
+				<label htmlFor="users-filter" className="sr-only">
+					Filter by status
+				</label>
 				<select
+					id="users-filter"
 					className="users-page__filter"
 					value={activeFilter}
 					onChange={(e) =>
@@ -230,7 +214,7 @@ export default function UsersPage() {
 			{error && <p className="users-page__error">{error}</p>}
 
 			<div className="users-table-wrapper">
-				<table className="users-table">
+				<table className="users-table" aria-busy={loading}>
 					<thead>
 						<tr>
 							<th>User</th>
@@ -277,7 +261,17 @@ export default function UsersPage() {
 							users.map((user) => (
 								<tr
 									key={user.id}
-									onClick={() => handleOpenUserDetails(user)}>
+									role="button"
+									tabIndex={0}
+									aria-haspopup="dialog"
+									aria-label={`View details for ${user.name}`}
+									onClick={() => handleOpenUserDetails(user)}
+									onKeyDown={(e) => {
+										if (e.key === "Enter" || e.key === " ") {
+											e.preventDefault();
+											handleOpenUserDetails(user);
+										}
+									}}>
 									<td>
 										<div className="user-cell">
 											<div
@@ -349,59 +343,27 @@ export default function UsersPage() {
 				</table>
 			</div>
 
-			{pagination && pagination.totalPages > 1 && (
-				<div className="users-pagination">
-					<button
-						className="users-pagination__btn"
-						disabled={page <= 1}
-						onClick={() => setPage((p) => p - 1)}
-						aria-label="Previous page">
-						←
-					</button>
-
-					{pageNumbers.map((p, idx) =>
-						p === "..." ? (
-							<span
-								key={`ellipsis-${idx}`}
-								className="users-pagination__ellipsis">
-								…
-							</span>
-						) : (
-							<button
-								key={p}
-								className={cn(
-									"users-pagination__btn",
-									p === page &&
-										"users-pagination__btn--active",
-								)}
-								onClick={() => setPage(p)}>
-								{p}
-							</button>
-						),
-					)}
-
-					<button
-						className="users-pagination__btn"
-						disabled={page >= pagination.totalPages}
-						onClick={() => setPage((p) => p + 1)}
-						aria-label="Next page">
-						→
-					</button>
-
-					<span className="users-pagination__info">
-						{pagination.total.toLocaleString()} users
-					</span>
-				</div>
+			{pagination && (
+				<Pagination
+					page={page}
+					totalPages={pagination.totalPages}
+					total={pagination.total}
+					itemLabel="users"
+					onPageChange={setPage}
+				/>
 			)}
 
 			{/* ── User Detail Modal ─────────────────────────────────────────── */}
 			{selectedUser && (
-				<div
-					className="users-modal-overlay"
-					onClick={() => setSelectedUser(null)}>
-					<div
-						className="users-modal"
-						onClick={(e) => e.stopPropagation()}>
+				<>
+					<Modal
+						open
+						onOpenChange={(o) => {
+							if (!o) setSelectedUser(null);
+						}}
+						title={`User details: ${selectedUser.name}`}
+						hideTitle
+						contentClassName="users-modal">
 						{/* Header */}
 						<div className="users-modal__header">
 							<div className="users-modal__header-left">
@@ -547,82 +509,74 @@ export default function UsersPage() {
 						{/* Actions — Lock/Unlock */}
 						<div className="users-modal__actions">
 							{selectedUser.isActive ? (
-								/* ── Lock flow ──────────────────────────── */
-								lockConfirm.open ? (
-									<div className="users-modal__lock-confirm">
-										<p className="users-modal__lock-confirm-title">
-											🔒 Confirm account lock
-										</p>
-										<p className="users-modal__lock-confirm-desc">
-											This will immediately revoke all active
-											sessions for{" "}
-											<strong>{selectedUser.name}</strong>.
-										</p>
-										<label
-											className="users-modal__card-label"
-											htmlFor="lock-reason">
-											Reason{" "}
-											<span className="users-modal__lock-optional">
-												(optional)
-											</span>
-										</label>
-										<textarea
-											id="lock-reason"
-											className="users-modal__lock-reason"
-											rows={3}
-											maxLength={500}
-											value={lockConfirm.reason}
-											onChange={(e) =>
-												setLockConfirm((prev) => ({
-													...prev,
-													reason: e.target.value,
-												}))
-											}
-											placeholder="e.g. Suspicious activity..."
-										/>
-										<div className="users-modal__lock-confirm-actions">
-											<button
-												type="button"
-												className="users-modal__action-btn users-modal__action-btn--cancel"
-												onClick={handleCancelLock}
-												disabled={statusUpdating}>
-												Cancel
-											</button>
-											<button
-												type="button"
-												className="users-modal__action-btn users-modal__action-btn--lock"
-												onClick={handleConfirmLock}
-												disabled={statusUpdating}>
-												{statusUpdating
-													? "Locking..."
-													: "🔒 Confirm lock"}
-											</button>
-										</div>
-									</div>
-								) : (
-									<button
-										type="button"
-										className="users-modal__action-btn users-modal__action-btn--lock"
-										onClick={handleInitiateLock}
-										disabled={statusUpdating}>
-										🔒 Lock account
-									</button>
-								)
+								<button
+									type="button"
+									className="users-modal__action-btn users-modal__action-btn--lock"
+									onClick={handleInitiateLock}
+									disabled={statusUpdating}>
+									🔒 Lock account
+								</button>
 							) : (
-								/* ── Unlock flow (no confirm needed) ─────── */
 								<button
 									type="button"
 									className="users-modal__action-btn users-modal__action-btn--unlock"
 									onClick={handleUnlock}
 									disabled={statusUpdating}>
+									{statusUpdating && (
+										<span
+											className="spinner"
+											aria-hidden="true"
+										/>
+									)}
 									{statusUpdating
 										? "Unlocking..."
 										: "🔓 Unlock account"}
 								</button>
 							)}
 						</div>
-					</div>
-				</div>
+					</Modal>
+
+					{/* Lock confirmation */}
+					<ConfirmDialog
+						open={lockConfirm.open}
+						onOpenChange={(o) => {
+							if (!o) handleCancelLock();
+						}}
+						title="🔒 Confirm account lock"
+						description={
+							<>
+								This will immediately revoke all active sessions
+								for <strong>{selectedUser.name}</strong>.
+							</>
+						}
+						confirmLabel="Lock account"
+						variant="danger"
+						loading={statusUpdating}
+						onConfirm={handleConfirmLock}>
+						<label
+							className="users-modal__card-label"
+							htmlFor="lock-reason">
+							Reason{" "}
+							<span className="users-modal__lock-optional">
+								(optional)
+							</span>
+						</label>
+						<textarea
+							id="lock-reason"
+							className="users-modal__lock-reason"
+							rows={3}
+							maxLength={500}
+							value={lockConfirm.reason}
+							onChange={(e) =>
+								setLockConfirm((prev) => ({
+									...prev,
+									reason: e.target.value,
+								}))
+							}
+							placeholder="e.g. Suspicious activity..."
+						/>
+					</ConfirmDialog>
+				</>
 			)}
 		</div>
 	);

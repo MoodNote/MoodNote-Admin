@@ -110,6 +110,18 @@
 	}
 }
 
+/* Modal pop — preserves the centering transform for fixed-positioned dialogs */
+@keyframes app-modal-pop {
+	from {
+		opacity: 0;
+		transform: translate(-50%, -50%) scale(0.97);
+	}
+	to {
+		opacity: 1;
+		transform: translate(-50%, -50%) scale(1);
+	}
+}
+
 /* Brand name shimmer — light sweep across gradient text */
 @keyframes brand-shimmer {
 	0%   { background-position: -200% center; }

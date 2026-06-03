@@ -327,93 +327,21 @@
 
 .users-table__skeleton-row td { padding: var(--sp-4) !important; }
 
-/* ── Pagination ── */
-.users-pagination {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: var(--sp-1);
-	margin-top: var(--sp-5);
-}
+/* Pagination uses the shared .app-pagination component (see index.css) */
 
-.users-pagination__btn {
-	min-width: 34px;
-	height: 34px;
-	padding: 0 var(--sp-2);
-	border: 1px solid var(--color-border);
-	border-radius: var(--radius-sm);
-	background: var(--color-bg-card);
-	color: var(--color-text);
-	font-size: var(--text-sm);
-	cursor: pointer;
-	transition:
-		background var(--transition-colors),
-		border-color var(--transition-colors),
-		color var(--transition-colors),
-		box-shadow var(--transition-colors);
-}
-
-.users-pagination__btn:hover:not(:disabled) {
-	background: var(--color-primary-light);
-	border-color: var(--color-primary);
-	color: var(--color-primary);
-}
-
-.users-pagination__btn--active {
-	background: var(--color-primary);
-	border-color: var(--color-primary);
-	color: #fff;
-	font-weight: 700;
-}
-
-.users-pagination__btn--active:hover:not(:disabled) {
-	background: var(--color-primary-hover);
-	color: #fff;
-}
-
-.users-pagination__btn:focus-visible {
-	outline: none;
-	box-shadow: var(--shadow-focus);
-}
-
-.users-pagination__btn:disabled {
-	opacity: 0.35;
-	cursor: not-allowed;
-}
-
-.users-pagination__ellipsis {
-	color: var(--color-text-muted);
-	font-size: var(--text-sm);
-	padding: 0 4px;
-}
-
-.users-pagination__info {
-	font-size: var(--text-xs);
-	color: var(--color-text-muted);
-	margin-left: var(--sp-3);
-}
-
-/* ── Modal overlay ── */
-.users-modal-overlay {
-	position: fixed;
-	inset: 0;
-	background: var(--color-bg-overlay);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	z-index: var(--z-modal);
-	padding: var(--sp-4);
-	animation: overlay-in var(--dur-fast) var(--ease-out);
-}
-
+/* ── Modal ── */
 .users-modal {
-	width: 100%;
-	max-width: 580px;
+	position: fixed;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	z-index: var(--z-modal);
+	width: min(580px, calc(100vw - 2 * var(--sp-4)));
 	background: var(--color-bg-card);
 	border-radius: var(--radius-xl);
 	box-shadow: var(--shadow-xl);
 	overflow: hidden;
-	animation: modal-in var(--dur-base) var(--ease-out);
+	animation: app-modal-pop var(--dur-base) var(--ease-out);
 	max-height: calc(100vh - 64px);
 	display: flex;
 	flex-direction: column;
@@ -616,18 +544,6 @@
 	box-shadow: 0 4px 12px hsla(142,71%,45%,0.3);
 }
 
-.users-modal__action-btn--cancel {
-	border-color: var(--color-border);
-	background: var(--color-bg-subtle);
-	color: var(--color-text-secondary);
-}
-
-.users-modal__action-btn--cancel:hover:not(:disabled) {
-	background: var(--color-bg-card);
-	border-color: var(--color-border-hover);
-	color: var(--color-text);
-}
-
 .users-modal__action-btn:focus-visible {
 	outline: none;
 	box-shadow: var(--shadow-focus);
@@ -638,27 +554,7 @@
 	cursor: not-allowed;
 }
 
-/* ── Lock confirm dialog ── */
-.users-modal__lock-confirm {
-	width: 100%;
-	display: flex;
-	flex-direction: column;
-	gap: var(--sp-3);
-	animation: app-fade-in-up var(--dur-fast) var(--ease-out);
-}
-
-.users-modal__lock-confirm-title {
-	font-size: var(--text-sm);
-	font-weight: 700;
-	color: var(--color-danger);
-}
-
-.users-modal__lock-confirm-desc {
-	font-size: var(--text-sm);
-	color: var(--color-text-secondary);
-	line-height: 1.5;
-}
-
+/* ── Lock reason field (rendered inside the confirm dialog) ── */
 .users-modal__lock-optional {
 	font-weight: 400;
 	color: var(--color-text-muted);
@@ -695,10 +591,4 @@
 
 .users-modal__lock-reason::placeholder {
 	color: var(--color-text-muted);
-}
-
-.users-modal__lock-confirm-actions {
-	display: flex;
-	gap: var(--sp-2);
-	justify-content: flex-end;
 }
