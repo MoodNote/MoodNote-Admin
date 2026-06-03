@@ -94,8 +94,8 @@ p {
 
 /* ── Selection ── */
 ::selection {
-	background: var(--color-primary-light);
-	color: var(--color-primary);
+	background: rgba(123, 53, 216, 0.45);
+	color: #ffffff;
 }
 
 /* ── Focus visible ── */

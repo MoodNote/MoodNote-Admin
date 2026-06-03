@@ -92,7 +92,7 @@
 	font-size: var(--text-sm);
 	color: var(--color-danger);
 	background: var(--color-danger-light);
-	border: 1px solid hsla(0,84%,60%,0.2);
+	border: 1px solid rgba(248, 113, 113, 0.3);
 	border-radius: var(--radius-md);
 	padding: var(--sp-3) var(--sp-4);
 	animation: app-fade-in-up var(--dur-fast) var(--ease-out);
@@ -100,9 +100,9 @@
 
 .notification-form__success {
 	font-size: var(--text-sm);
-	color: hsl(142,60%,30%);
+	color: var(--color-success);
 	background: var(--color-success-light);
-	border: 1px solid hsla(142,71%,45%,0.2);
+	border: 1px solid rgba(74, 222, 128, 0.3);
 	border-radius: var(--radius-md);
 	padding: var(--sp-3) var(--sp-4);
 	animation: app-fade-in-up var(--dur-fast) var(--ease-out);
@@ -175,6 +175,50 @@
 	color: var(--color-text-muted);
 	text-align: right;
 	font-variant-numeric: tabular-nums;
+}
+
+/* ── Advanced options (collapsible) ── */
+.notification-form__advanced {
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	background: var(--color-bg-subtle);
+	overflow: hidden;
+}
+
+.notification-form__advanced-summary {
+	padding: var(--sp-3) var(--sp-4);
+	font-size: var(--text-sm);
+	font-weight: 600;
+	color: var(--color-text-secondary);
+	cursor: pointer;
+	list-style: none;
+	user-select: none;
+	display: flex;
+	align-items: center;
+	gap: var(--sp-2);
+	transition: color var(--transition-colors);
+}
+
+.notification-form__advanced-summary::-webkit-details-marker {
+	display: none;
+}
+
+.notification-form__advanced-summary::before {
+	content: "▸";
+	font-size: 10px;
+	transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.notification-form__advanced[open] .notification-form__advanced-summary::before {
+	transform: rotate(90deg);
+}
+
+.notification-form__advanced-summary:hover {
+	color: var(--color-text);
+}
+
+.notification-form__advanced .notification-form__group {
+	padding: 0 var(--sp-4) var(--sp-4);
 }
 
 .notification-form__submit {

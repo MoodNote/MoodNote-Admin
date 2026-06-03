@@ -1,7 +1,9 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { notificationService } from "@/services";
+import type { AdminUser } from "@/types/user";
 import { getErrorMessage, isApiError } from "@/utils/error";
+import UserMultiSelect from "@/components/UserMultiSelect/UserMultiSelect";
 import "./NotificationsPage.css";
 
 type Tab = "broadcast" | "send";
@@ -13,8 +15,7 @@ interface FormState {
 
 const EMPTY_FORM: FormState = { title: "", message: "" };
 
-const UUID_REGEX =
-	/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const MAX_RECIPIENTS = 500;
 
 function parseMetadata(raw: string): {
 	metadata?: Record<string, unknown>;
@@ -45,10 +46,6 @@ function getApiErrorMessage(error: unknown, fallback: string): string {
 	return getErrorMessage(error, fallback);
 }
 
-function findInvalidUserId(userIds: string[]): string | null {
-	return userIds.find((id) => !UUID_REGEX.test(id)) ?? null;
-}
-
 export default function NotificationsPage() {
 	const [tab, setTab] = useState<Tab>("broadcast");
 
@@ -61,7 +58,7 @@ export default function NotificationsPage() {
 
 	// Send state
 	const [send, setSend] = useState<FormState>(EMPTY_FORM);
-	const [userIdsRaw, setUserIdsRaw] = useState("");
+	const [selectedUsers, setSelectedUsers] = useState<AdminUser[]>([]);
 	const [sendLoading, setSendLoading] = useState(false);
 	const [sendResult, setSendResult] = useState<string | null>(null);
 	const [sendError, setSendError] = useState("");
@@ -119,23 +116,16 @@ export default function NotificationsPage() {
 		setSendError("");
 		setSendResult(null);
 
-		const userIds = userIdsRaw
-			.split("\n")
-			.map((s) => s.trim())
-			.filter(Boolean);
+		const userIds = selectedUsers.map((u) => u.id);
 
 		if (userIds.length === 0) {
-			setSendError("Please enter at least one user ID.");
+			setSendError("Please select at least one user.");
 			return;
 		}
-		if (userIds.length > 500) {
-			setSendError("You can send to at most 500 users at once.");
-			return;
-		}
-
-		const invalidUserId = findInvalidUserId(userIds);
-		if (invalidUserId) {
-			setSendError(`Invalid user ID format: ${invalidUserId}`);
+		if (userIds.length > MAX_RECIPIENTS) {
+			setSendError(
+				`You can send to at most ${MAX_RECIPIENTS} users at once.`,
+			);
 			return;
 		}
 
@@ -169,7 +159,7 @@ export default function NotificationsPage() {
 			});
 			setSendResult(`Sent ${data.sent} / ${data.requested} requested.`);
 			setSend(EMPTY_FORM);
-			setUserIdsRaw("");
+			setSelectedUsers([]);
 			setSendMetadataRaw("");
 		} catch (error: unknown) {
 			setSendError(
@@ -283,26 +273,31 @@ export default function NotificationsPage() {
 							</span>
 						</div>
 
-						<div className="notification-form__group">
-							<label
-								className="notification-form__label"
-								htmlFor="broadcast-metadata">
-								Metadata JSON{" "}
-								<span className="notification-form__hint">
-									(optional object)
-								</span>
-							</label>
-							<textarea
-								id="broadcast-metadata"
-								className="notification-form__textarea"
-								rows={4}
-								value={broadcastMetadataRaw}
-								onChange={(e) =>
-									setBroadcastMetadataRaw(e.target.value)
-								}
-								placeholder={'{\n  "link": "/maintenance"\n}'}
-							/>
-						</div>
+						<details className="notification-form__advanced">
+							<summary className="notification-form__advanced-summary">
+								Advanced options
+							</summary>
+							<div className="notification-form__group">
+								<label
+									className="notification-form__label"
+									htmlFor="broadcast-metadata">
+									Metadata JSON{" "}
+									<span className="notification-form__hint">
+										(optional object)
+									</span>
+								</label>
+								<textarea
+									id="broadcast-metadata"
+									className="notification-form__textarea"
+									rows={4}
+									value={broadcastMetadataRaw}
+									onChange={(e) =>
+										setBroadcastMetadataRaw(e.target.value)
+									}
+									placeholder={'{\n  "link": "/maintenance"\n}'}
+								/>
+							</div>
+						</details>
 
 						<button
 							type="submit"
@@ -320,8 +315,9 @@ export default function NotificationsPage() {
 						noValidate>
 						<p className="notification-form__desc">
 							Send a notification to{" "}
-							<strong>specific users</strong> by their IDs. Users
-							who are inactive or unverified will be skipped.
+							<strong>specific users</strong>. Search and pick
+							recipients below. Users who are inactive or unverified
+							will be skipped.
 						</p>
 
 						{sendError && (
@@ -338,19 +334,17 @@ export default function NotificationsPage() {
 						<div className="notification-form__group">
 							<label
 								className="notification-form__label"
-								htmlFor="user-ids">
-								User IDs{" "}
+								htmlFor="user-search">
+								Recipients{" "}
 								<span className="notification-form__hint">
-									(one per line, max 500)
+									(max {MAX_RECIPIENTS})
 								</span>
 							</label>
-							<textarea
-								id="user-ids"
-								className="notification-form__textarea"
-								rows={4}
-								value={userIdsRaw}
-								onChange={(e) => setUserIdsRaw(e.target.value)}
-								placeholder={"uuid-1\nuuid-2\nuuid-3"}
+							<UserMultiSelect
+								inputId="user-search"
+								value={selectedUsers}
+								onChange={setSelectedUsers}
+								max={MAX_RECIPIENTS}
 							/>
 						</div>
 
@@ -410,26 +404,31 @@ export default function NotificationsPage() {
 							</span>
 						</div>
 
-						<div className="notification-form__group">
-							<label
-								className="notification-form__label"
-								htmlFor="send-metadata">
-								Metadata JSON{" "}
-								<span className="notification-form__hint">
-									(optional object)
-								</span>
-							</label>
-							<textarea
-								id="send-metadata"
-								className="notification-form__textarea"
-								rows={4}
-								value={sendMetadataRaw}
-								onChange={(e) =>
-									setSendMetadataRaw(e.target.value)
-								}
-								placeholder={'{\n  "campaign": "streak-30"\n}'}
-							/>
-						</div>
+						<details className="notification-form__advanced">
+							<summary className="notification-form__advanced-summary">
+								Advanced options
+							</summary>
+							<div className="notification-form__group">
+								<label
+									className="notification-form__label"
+									htmlFor="send-metadata">
+									Metadata JSON{" "}
+									<span className="notification-form__hint">
+										(optional object)
+									</span>
+								</label>
+								<textarea
+									id="send-metadata"
+									className="notification-form__textarea"
+									rows={4}
+									value={sendMetadataRaw}
+									onChange={(e) =>
+										setSendMetadataRaw(e.target.value)
+									}
+									placeholder={'{\n  "campaign": "streak-30"\n}'}
+								/>
+							</div>
+						</details>
 
 						<button
 							type="submit"

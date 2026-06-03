@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { usersService } from "@/services";
 import type { AdminUser, AdminUserDetail, Pagination } from "@/types/user";
 import { formatDate, formatRelativeTime } from "@/utils/format";
+import { getInitials } from "@/utils/string";
 import { cn } from "@/utils/cn";
 import { getErrorMessage } from "@/utils/error";
 import "./UsersPage.css";
@@ -12,15 +13,6 @@ type ActiveFilter = "" | "true" | "false";
 interface LockConfirmState {
 	open: boolean;
 	reason: string;
-}
-
-function getInitials(name: string): string {
-	return name
-		.split(" ")
-		.filter(Boolean)
-		.slice(0, 2)
-		.map((n) => n[0].toUpperCase())
-		.join("");
 }
 
 function buildPageNumbers(
