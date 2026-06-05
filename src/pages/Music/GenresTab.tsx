@@ -40,7 +40,7 @@ export default function GenresTab() {
 		try {
 			const data = await musicService.getGenres({
 				page: currentPage,
-				limit: 20,
+				limit: 10,
 				search: currentSearch || undefined,
 			});
 			setGenres(data.genres);
@@ -138,7 +138,17 @@ export default function GenresTab() {
 	};
 
 	return (
-		<div>
+		<section
+			className="music-section music-section--genres"
+			aria-labelledby="music-genres-title">
+			<div className="music-section__header">
+				<h3
+					id="music-genres-title"
+					className="music-section__title">
+					Genres
+				</h3>
+			</div>
+
 			<div className="music-section__toolbar">
 				<label htmlFor="genre-search" className="sr-only">
 					Search genres
@@ -303,6 +313,6 @@ export default function GenresTab() {
 				loading={deleting}
 				onConfirm={handleConfirmDelete}
 			/>
-		</div>
+		</section>
 	);
 }

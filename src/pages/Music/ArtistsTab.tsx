@@ -41,7 +41,7 @@ export default function ArtistsTab() {
 		try {
 			const data = await musicService.getArtists({
 				page: currentPage,
-				limit: 20,
+				limit: 10,
 				search: currentSearch || undefined,
 			});
 			setArtists(data.artists);
@@ -139,7 +139,17 @@ export default function ArtistsTab() {
 	};
 
 	return (
-		<div>
+		<section
+			className="music-section music-section--artists"
+			aria-labelledby="music-artists-title">
+			<div className="music-section__header">
+				<h3
+					id="music-artists-title"
+					className="music-section__title">
+					Artists
+				</h3>
+			</div>
+
 			<div className="music-section__toolbar">
 				<label htmlFor="artist-search" className="sr-only">
 					Search artists
@@ -316,6 +326,6 @@ export default function ArtistsTab() {
 				loading={deleting}
 				onConfirm={handleConfirmDelete}
 			/>
-		</div>
+		</section>
 	);
 }

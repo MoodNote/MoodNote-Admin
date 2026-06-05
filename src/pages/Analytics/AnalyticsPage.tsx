@@ -22,8 +22,6 @@ import type {
 import { formatCompact, formatDateTime } from "@/utils/format";
 import "./AnalyticsPage.css";
 
-type ActiveTab = "users" | "content";
-
 const CHART_GRID = "rgba(148, 163, 184, 0.14)";
 const CHART_AXIS = "rgba(203, 213, 225, 0.72)";
 const CHART_TOOLTIP = {
@@ -443,7 +441,6 @@ function KeywordChart({ data }: { data: TopKeyword[] }) {
 }
 
 export default function AnalyticsPage() {
-	const [tab, setTab] = useState<ActiveTab>("users");
 	const [stats, setStats] = useState<AdminStatsData | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
@@ -493,11 +490,6 @@ export default function AnalyticsPage() {
 		void fetchGrowthData(period);
 	};
 
-	const TABS: { id: ActiveTab; label: string }[] = [
-		{ id: "users", label: "User Analytics" },
-		{ id: "content", label: "Content Analytics" },
-	];
-
 	return (
 		<div className="analytics-page page-enter">
 			<div className="page-header">
@@ -526,19 +518,10 @@ export default function AnalyticsPage() {
 
 			{error && <p className="page-error">{error}</p>}
 
-			<div className="analytics-tabs">
-				{TABS.map((t) => (
-					<button
-						key={t.id}
-						type="button"
-						className={`analytics-tab${tab === t.id ? " analytics-tab--active" : ""}`}
-						onClick={() => setTab(t.id)}>
-						{t.label}
-					</button>
-				))}
-			</div>
-
-			{tab === "users" && (
+			<section className="analytics-section">
+				<div className="analytics-section__header">
+					<h3 className="analytics-section__title">User Analytics</h3>
+				</div>
 				<div className="analytics-grid">
 					{/* Summary cards */}
 					<div className="analytics-summary">
@@ -613,9 +596,12 @@ export default function AnalyticsPage() {
 						/>
 					</div>
 				</div>
-			)}
+			</section>
 
-			{tab === "content" && (
+			<section className="analytics-section">
+				<div className="analytics-section__header">
+					<h3 className="analytics-section__title">Content Analytics</h3>
+				</div>
 				<div className="analytics-grid">
 					{/* Summary */}
 					<div className="analytics-summary">
@@ -687,7 +673,7 @@ export default function AnalyticsPage() {
 						</div>
 					</div>
 				</div>
-			)}
+			</section>
 		</div>
 	);
 }

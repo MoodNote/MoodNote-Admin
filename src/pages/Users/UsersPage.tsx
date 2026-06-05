@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { usersService } from "@/services";
 import type {
 	AdminUser,
@@ -40,7 +40,9 @@ function EmotionBars({ data }: { data: UserEmotionItem[] }) {
 			{data.map((item) => {
 				const key = item.emotion.toLowerCase();
 				return (
-					<div key={item.emotion} className="emotion-bars__row">
+					<div
+						key={item.emotion}
+						className="emotion-bars__row">
 						<span className="emotion-bars__label">
 							{item.emotion.charAt(0) +
 								item.emotion.slice(1).toLowerCase()}
@@ -202,7 +204,9 @@ export default function UsersPage() {
 		setStatusUpdating(true);
 		try {
 			await usersService.updateUserStatus(selectedUser.id, true);
-			setSelectedUser((prev) => (prev ? { ...prev, isActive: true } : prev));
+			setSelectedUser((prev) =>
+				prev ? { ...prev, isActive: true } : prev,
+			);
 			setUsers((prev) =>
 				prev.map((u) =>
 					u.id === selectedUser.id ? { ...u, isActive: true } : u,
@@ -262,7 +266,9 @@ export default function UsersPage() {
 
 			{/* Controls — spec params only: search + isActive */}
 			<div className="users-page__controls">
-				<label htmlFor="users-search" className="sr-only">
+				<label
+					htmlFor="users-search"
+					className="sr-only">
 					Search users
 				</label>
 				<input
@@ -273,7 +279,9 @@ export default function UsersPage() {
 					value={search}
 					onChange={(e) => handleSearchChange(e.target.value)}
 				/>
-				<label htmlFor="users-filter" className="sr-only">
+				<label
+					htmlFor="users-filter"
+					className="sr-only">
 					Filter by status
 				</label>
 				<select
@@ -292,10 +300,13 @@ export default function UsersPage() {
 			{error && <p className="users-page__error">{error}</p>}
 
 			<div className="users-table-wrapper">
-				<table className="users-table" aria-busy={loading}>
+				<table
+					className="users-table"
+					aria-busy={loading}>
 					<thead>
 						<tr>
 							<th>User</th>
+							<th>Email</th>
 							<th>Role</th>
 							<th>Status</th>
 							<th>Verified</th>
@@ -309,7 +320,7 @@ export default function UsersPage() {
 								<tr
 									key={i}
 									className="users-table__skeleton-row">
-									{Array.from({ length: 6 }).map((__, j) => (
+									{Array.from({ length: 7 }).map((__, j) => (
 										<td key={j}>
 											<span className="skeleton" />
 										</td>
@@ -319,7 +330,7 @@ export default function UsersPage() {
 						) : users.length === 0 ? (
 							<tr>
 								<td
-									colSpan={6}
+									colSpan={7}
 									className="users-table__empty">
 									<div className="empty-state">
 										<span className="empty-state__icon">
@@ -329,8 +340,8 @@ export default function UsersPage() {
 											No users found
 										</span>
 										<span className="empty-state__desc">
-											Try adjusting your filters or
-											search query
+											Try adjusting your filters or search
+											query
 										</span>
 									</div>
 								</td>
@@ -345,7 +356,10 @@ export default function UsersPage() {
 									aria-label={`View details for ${user.name}`}
 									onClick={() => handleOpenUserDetails(user)}
 									onKeyDown={(e) => {
-										if (e.key === "Enter" || e.key === " ") {
+										if (
+											e.key === "Enter" ||
+											e.key === " "
+										) {
 											e.preventDefault();
 											handleOpenUserDetails(user);
 										}
@@ -363,17 +377,28 @@ export default function UsersPage() {
 												</span>
 											</div>
 											{/* Tooltip */}
-											<div className="user-cell__tooltip" role="tooltip">
+											<div
+												className="user-cell__tooltip"
+												role="tooltip">
 												<span className="user-cell__tooltip-row">
-													<span className="user-cell__tooltip-label">Username</span>
-													<span>@{user.username}</span>
+													<span className="user-cell__tooltip-label">
+														Username
+													</span>
+													<span>
+														@{user.username}
+													</span>
 												</span>
 												<span className="user-cell__tooltip-row">
-													<span className="user-cell__tooltip-label">Email</span>
+													<span className="user-cell__tooltip-label">
+														Email
+													</span>
 													<span>{user.email}</span>
 												</span>
 											</div>
 										</div>
+									</td>
+									<td className="users-table__email">
+										{user.email}
 									</td>
 									<td>
 										<span className="badge badge--role">
@@ -408,7 +433,9 @@ export default function UsersPage() {
 									</td>
 									<td className="users-table__date">
 										{user.lastLoginAt
-											? formatRelativeTime(user.lastLoginAt)
+											? formatRelativeTime(
+													user.lastLoginAt,
+												)
 											: "—"}
 									</td>
 									<td className="users-table__date">
@@ -559,8 +586,8 @@ export default function UsersPage() {
 									<div className="users-modal__card-value">
 										{selectedUser.lastLoginAt
 											? formatRelativeTime(
-												selectedUser.lastLoginAt,
-											)
+													selectedUser.lastLoginAt,
+												)
 											: "—"}
 									</div>
 								</div>

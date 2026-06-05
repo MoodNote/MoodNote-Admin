@@ -314,7 +314,7 @@ export default function TracksTab() {
 		try {
 			const data = await musicService.getTracks({
 				page: currentPage,
-				limit: 20,
+				limit: 10,
 				search: currentSearch || undefined,
 				genreId: genreId || undefined,
 			});
@@ -447,7 +447,17 @@ export default function TracksTab() {
 	};
 
 	return (
-		<div>
+		<section
+			className="music-section music-section--tracks"
+			aria-labelledby="music-tracks-title">
+			<div className="music-section__header">
+				<h3
+					id="music-tracks-title"
+					className="music-section__title">
+					Tracks
+				</h3>
+			</div>
+
 			<div className="music-section__toolbar">
 				<label htmlFor="track-search" className="sr-only">
 					Search tracks
@@ -1122,6 +1132,6 @@ export default function TracksTab() {
 				loading={deleting}
 				onConfirm={handleConfirmDelete}
 			/>
-		</div>
+		</section>
 	);
 }

@@ -117,40 +117,36 @@
 	color: var(--color-text-muted);
 }
 
-/* ── Tabs ── */
-.music-tabs {
+/* Catalog layout */
+.music-page__catalog-grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: var(--sp-5);
+	align-items: start;
+}
+
+.music-section {
+	min-width: 0;
+}
+
+.music-section--tracks {
+	grid-column: 1 / -1;
+}
+
+.music-section__header {
 	display: flex;
-	gap: var(--sp-1);
-	margin-bottom: var(--sp-6);
-	background: var(--color-bg-elevated);
-	border: 1px solid var(--color-border);
-	border-radius: var(--radius-lg);
-	padding: var(--sp-1);
-	width: fit-content;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--sp-3);
+	margin-bottom: var(--sp-3);
 }
 
-.music-tab {
-	padding: var(--sp-2) var(--sp-5);
-	border-radius: var(--radius-md);
-	background: transparent;
-	border: none;
-	font-size: var(--text-sm);
-	font-weight: 500;
-	color: var(--color-text-secondary);
-	cursor: pointer;
-	transition:
-		background var(--transition-colors),
-		color var(--transition-colors),
-		box-shadow var(--transition-colors);
-}
-
-.music-tab:hover { color: var(--color-text); background: var(--color-bg-subtle); }
-
-.music-tab--active {
-	background: var(--color-primary);
-	color: #fff;
-	font-weight: 600;
-	box-shadow: var(--shadow-sm);
+.music-section__title {
+	font-size: var(--text-lg);
+	font-weight: 800;
+	color: var(--color-text);
+	line-height: var(--leading-tight);
+	letter-spacing: var(--tracking-tight);
 }
 
 /* ── Toolbar ── */
@@ -319,7 +315,63 @@
 .music-table__date { white-space: nowrap; color: var(--color-text-secondary); }
 .music-table__desc { color: var(--color-text-secondary); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* ── Track cell (name + artists + album sub-text) ── */
+/* Music page compact table overrides */
+.music-page .music-section__toolbar {
+	gap: var(--sp-2);
+	margin-bottom: var(--sp-3);
+}
+
+.music-page .music-section__search {
+	min-width: 160px;
+}
+
+.music-page .music-table-wrapper {
+	overflow-x: auto;
+}
+
+.music-page .music-table {
+	min-width: 560px;
+}
+
+.music-section--genres .music-table {
+	min-width: 420px;
+}
+
+.music-section--artists .music-table {
+	min-width: 640px;
+}
+
+.music-section--tracks .music-table {
+	min-width: 900px;
+}
+
+.music-page .music-table th {
+	padding: var(--sp-2) var(--sp-3);
+}
+
+.music-page .music-table td {
+	padding: var(--sp-2) var(--sp-3);
+}
+
+.music-page .music-col--genres { width: 160px; }
+.music-page .music-col--duration { width: 76px; }
+.music-page .music-col--popularity { width: 112px; }
+.music-page .music-col--actions { width: 68px; }
+.music-page .music-col--genre-tracks { width: 88px; }
+.music-page .music-col--artist-tracks { width: 84px; }
+.music-page .music-col--artist-created { width: 116px; }
+.music-page .music-col--artist-updated { width: 116px; }
+
+.music-page .music-table__actions {
+	gap: var(--sp-1);
+}
+
+.music-page .action-btn {
+	width: 26px;
+	height: 26px;
+}
+
+/* Track cell */
 .track-cell {
 	display: flex;
 	flex-direction: column;
@@ -580,6 +632,30 @@
 .music-modal__submit:hover:not(:disabled) { background: var(--color-primary-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
 .music-modal__submit:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
 .music-modal__submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media (max-width: 1180px) {
+	.music-page__catalog-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.music-section--tracks {
+		grid-column: auto;
+	}
+}
+
+@media (max-width: 640px) {
+	.music-page .music-section__toolbar {
+		align-items: stretch;
+	}
+
+	.music-page .music-section__search,
+	.music-page .music-section__filter,
+	.music-page .music-section__add-btn,
+	.music-page .music-section__import-btn {
+		flex: 1 1 100%;
+		width: 100%;
+	}
+}
 
 @media (max-width: 900px) {
 	.music-modal { max-width: 100%; padding: var(--sp-6); }

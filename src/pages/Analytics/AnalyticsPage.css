@@ -2,49 +2,28 @@
    Analytics Page
    ─────────────────────────────────────────────────────── */
 
-/* ── Tabs ── */
-.analytics-tabs {
+/* Section layout */
+.analytics-section {
 	display: flex;
-	gap: var(--sp-1);
-	background: var(--color-bg-elevated);
-	border: 1px solid var(--color-border);
-	border-radius: var(--radius-lg);
-	padding: var(--sp-1);
-	margin-bottom: var(--sp-6);
-	width: fit-content;
-	box-shadow: var(--shadow-sm);
+	flex-direction: column;
+	gap: var(--sp-4);
 }
 
-.analytics-tab {
-	padding: var(--sp-2) var(--sp-5);
-	border-radius: var(--radius-md);
-	font-size: var(--text-sm);
-	font-weight: 500;
-	color: var(--color-text-secondary);
-	background: transparent;
-	border: none;
-	cursor: pointer;
-	transition:
-		background var(--transition-colors),
-		color var(--transition-colors),
-		box-shadow var(--transition-colors);
-	white-space: nowrap;
+.analytics-section + .analytics-section {
+	margin-top: var(--sp-8);
 }
 
-.analytics-tab:hover {
+.analytics-section__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.analytics-section__title {
 	color: var(--color-text);
-	background: var(--color-bg-subtle);
-}
-
-.analytics-tab--active {
-	background: linear-gradient(
-		135deg,
-		var(--color-primary) 0%,
-		#9b59f5 100%
-	);
-	color: #fff;
-	font-weight: 600;
-	box-shadow: var(--shadow-sm), 0 2px 8px rgba(123, 53, 216, 0.35);
+	font-size: var(--text-lg);
+	font-weight: 800;
+	margin: 0;
 }
 
 /* ── Grid ── */
