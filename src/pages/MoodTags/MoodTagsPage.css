@@ -1,0 +1,319 @@
+/* ───────────────────────────────────────────────────────
+   Mood Tags Page
+   ─────────────────────────────────────────────────────── */
+
+.mood-tags-page {
+	animation: app-fade-in-up var(--dur-base) var(--ease-out);
+}
+
+.mood-tags-page__header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	margin-bottom: var(--sp-6);
+}
+
+.mood-tags-page__title {
+	font-size: var(--text-3xl);
+	font-weight: 800;
+	color: var(--color-text);
+	margin-bottom: var(--sp-1);
+	letter-spacing: var(--tracking-tight);
+}
+
+.mood-tags-page__subtitle {
+	font-size: var(--text-base);
+	color: var(--color-text-secondary);
+}
+
+.mood-tags-page__toolbar {
+	display: flex;
+	gap: var(--sp-3);
+	margin-bottom: var(--sp-5);
+	flex-wrap: wrap;
+	align-items: center;
+}
+
+/* ── Column widths ── */
+.mood-col--name    { width: auto; }
+.mood-col--color   { width: 140px; }
+.mood-col--type    { width: 90px; }
+.mood-col--created { width: 120px; }
+
+/* ── Color cell ── */
+.mood-color-cell {
+	display: flex;
+	align-items: center;
+	gap: var(--sp-2);
+}
+
+.mood-color-swatch {
+	width: 16px;
+	height: 16px;
+	border-radius: var(--radius-sm);
+	border: 1px solid var(--color-border);
+	flex-shrink: 0;
+}
+
+.mood-color-hex {
+	font-size: var(--text-xs);
+	color: var(--color-text-secondary);
+	font-family: monospace;
+}
+
+.mood-color-none {
+	color: var(--color-text-muted);
+}
+
+/* ── Type badge ── */
+.mood-type-badge {
+	display: inline-flex;
+	align-items: center;
+	font-size: var(--text-xs);
+	font-weight: 700;
+	padding: 2px var(--sp-2);
+	border-radius: var(--radius-full);
+	border: 1px solid transparent;
+	text-transform: uppercase;
+	letter-spacing: var(--tracking-wider);
+}
+
+.mood-type-badge--mood {
+	background: var(--color-primary-subtle, hsla(243,75%,65%,0.12));
+	color: var(--color-primary);
+	border-color: hsla(243,75%,65%,0.25);
+}
+
+.mood-type-badge--life {
+	background: hsla(142,71%,45%,0.1);
+	color: var(--color-success, hsl(142,71%,38%));
+	border-color: hsla(142,71%,45%,0.25);
+}
+
+/* ── Tag name in table ── */
+.mood-tag__name {
+	font-weight: 600;
+	color: var(--color-text);
+}
+
+/* ── Reuse music modal optional label style ── */
+.music-modal__optional {
+	font-weight: 400;
+	color: var(--color-text-muted);
+	text-transform: none;
+	letter-spacing: 0;
+	font-size: var(--text-xs);
+}
+
+/* ── Select field inside modal ── */
+.music-modal__select {
+	cursor: pointer;
+}
+
+/* ── Narrow modal for tag form ── */
+.mood-tag-modal {
+	width: min(400px, calc(100vw - 2 * var(--sp-4)));
+	padding: var(--sp-6);
+}
+
+/* Tag form modal overrides */
+.music-modal.mood-tag-modal {
+	width: min(480px, calc(100vw - var(--sp-8)));
+	padding: var(--sp-6);
+	border: 1px solid var(--color-border);
+}
+
+.mood-tag-modal .music-modal__title {
+	margin-bottom: var(--sp-4);
+	font-size: var(--text-xl);
+	line-height: var(--leading-tight);
+}
+
+.mood-tag-modal form {
+	display: flex;
+	flex-direction: column;
+	gap: var(--sp-4);
+}
+
+.mood-tag-modal .music-modal__group {
+	gap: var(--sp-2);
+	margin-bottom: 0;
+}
+
+.mood-tag-modal .music-modal__label {
+	font-weight: 600;
+}
+
+.mood-tag-modal .music-modal__input {
+	height: 42px;
+}
+
+.mood-tag-modal .music-modal__error {
+	margin: 0;
+	padding: var(--sp-3);
+	border: 1px solid rgba(248, 113, 113, 0.24);
+	border-radius: var(--radius-md);
+	background: var(--color-danger-light);
+	line-height: var(--leading-normal);
+}
+
+.mood-tag-type-toggle {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--sp-1);
+	padding: var(--sp-1);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	background: var(--color-bg-subtle);
+}
+
+.mood-tag-type-toggle__option {
+	height: 36px;
+	padding: 0 var(--sp-3);
+	border: 0;
+	border-radius: var(--radius-sm);
+	background: transparent;
+	color: var(--color-text-secondary);
+	font-size: var(--text-sm);
+	font-weight: 700;
+	cursor: pointer;
+	transition:
+		background var(--transition-colors),
+		color var(--transition-colors),
+		box-shadow var(--transition-colors);
+}
+
+.mood-tag-type-toggle__option:hover {
+	background: var(--color-bg-card-hover);
+	color: var(--color-text);
+}
+
+.mood-tag-type-toggle__option:focus-visible {
+	outline: none;
+	box-shadow: var(--shadow-focus);
+}
+
+.mood-tag-type-toggle__option--active {
+	background: var(--color-primary);
+	color: #ffffff;
+	box-shadow: var(--shadow-sm);
+}
+
+.mood-tag-modal .color-picker {
+	display: grid;
+	grid-template-columns: max-content minmax(0, 1fr);
+	align-items: start;
+	gap: var(--sp-3);
+}
+
+.mood-tag-modal .color-picker__grid {
+	grid-template-columns: repeat(6, 20px);
+	gap: 6px;
+}
+
+.mood-tag-modal .color-picker__swatch {
+	width: 20px;
+	height: 20px;
+	border-radius: var(--radius-sm);
+}
+
+.mood-tag-modal .color-picker__swatch--selected::after {
+	font-size: 10px;
+}
+
+.mood-tag-modal .color-picker__footer {
+	display: grid;
+	grid-template-columns: 94px minmax(0, 1fr);
+	gap: var(--sp-2);
+	align-items: center;
+}
+
+.mood-tag-modal .color-picker__custom-btn,
+.mood-tag-modal .color-picker__hex-input {
+	height: 34px;
+}
+
+.mood-tag-modal .color-picker__custom-btn {
+	justify-content: center;
+	padding: 0 var(--sp-3);
+	font-weight: 600;
+}
+
+.mood-tag-modal .color-picker__selected-row {
+	min-width: 0;
+	gap: var(--sp-2);
+}
+
+.mood-tag-modal .color-picker__hex-input {
+	width: 100%;
+	min-width: 0;
+}
+
+.mood-tag-modal .color-picker__preview,
+.mood-tag-modal .color-picker__clear-btn {
+	width: 20px;
+	height: 20px;
+}
+
+.mood-tag-modal .music-modal__actions {
+	margin-top: var(--sp-1);
+	gap: var(--sp-2);
+}
+
+.mood-tag-modal .music-modal__cancel,
+.mood-tag-modal .music-modal__submit {
+	min-width: 116px;
+	height: 42px;
+}
+
+.mood-tag-modal .music-modal__submit {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--sp-2);
+}
+
+@media (max-width: 520px) {
+	.music-modal.mood-tag-modal {
+		width: calc(100vw - var(--sp-6));
+		max-height: calc(100vh - var(--sp-8));
+		padding: var(--sp-5);
+	}
+
+	.mood-tag-modal .color-picker {
+		grid-template-columns: 1fr;
+	}
+
+	.mood-tag-modal .color-picker__grid {
+		grid-template-columns: repeat(8, minmax(0, 1fr));
+	}
+
+	.mood-tag-modal .color-picker__swatch {
+		width: 100%;
+		height: auto;
+		aspect-ratio: 1;
+		min-height: 20px;
+	}
+
+	.mood-tag-modal .color-picker__footer {
+		grid-template-columns: 1fr;
+	}
+
+	.mood-tag-modal .music-modal__actions {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.mood-tag-modal .music-modal__cancel,
+	.mood-tag-modal .music-modal__submit {
+		width: 100%;
+		min-width: 0;
+		padding-inline: var(--sp-3);
+	}
+}
+
+@media (max-width: 360px) {
+	.mood-tag-modal .music-modal__actions {
+		grid-template-columns: 1fr;
+	}
+}

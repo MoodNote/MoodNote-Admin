@@ -6,6 +6,7 @@ import LoginPage from "@/pages/Login/LoginPage";
 import DashboardPage from "@/pages/Dashboard/DashboardPage";
 import AnalyticsPage from "@/pages/Analytics/AnalyticsPage";
 import UsersPage from "@/pages/Users/UsersPage";
+import MoodTagsPage from "@/pages/MoodTags/MoodTagsPage";
 import NotificationsPage from "@/pages/Notifications/NotificationsPage";
 import MusicPage from "@/pages/Music/MusicPage";
 import SystemPage from "@/pages/System/SystemPage";
@@ -42,6 +43,10 @@ const router = createBrowserRouter([
 					{
 						path: "users",
 						element: <UsersPage />,
+					},
+					{
+						path: "mood-tags",
+						element: <MoodTagsPage />,
 					},
 					{
 						path: "notifications",

@@ -14,6 +14,7 @@ export const ROUTES = {
 	DASHBOARD: "/dashboard",
 	ANALYTICS: "/analytics",
 	USERS: "/users",
+	MOOD_TAGS: "/mood-tags",
 	MUSIC: "/music",
 	NOTIFICATIONS: "/notifications",
 	SYSTEM: "/system",

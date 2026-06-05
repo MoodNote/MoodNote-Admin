@@ -6,6 +6,8 @@ import type {
 	MusicAnalyticsResponse,
 	MusicCatalogStats,
 	MusicStatsResponse,
+	GrowthResponse,
+	GrowthPeriod,
 } from "@/types/stats";
 import { withErrorHandling } from "@/utils/error";
 
@@ -58,6 +60,18 @@ class DashboardService {
 	 */
 	getHealth = withErrorHandling(async () => {
 		const { data } = await api.get<AdminHealthResponse>("/admin/health");
+		return data.data;
+	});
+
+	/**
+	 * GET /admin/stats/growth
+	 * Time-series tăng trưởng user theo ngày (7d / 30d / 90d).
+	 */
+	getGrowthData = withErrorHandling(async (period?: GrowthPeriod) => {
+		const { data } = await api.get<GrowthResponse>(
+			"/admin/stats/growth",
+			period !== undefined ? { params: { period } } : undefined,
+		);
 		return data.data;
 	});
 

@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { usersService } from "@/services";
-import type { AdminUser, AdminUserDetail, Pagination as PaginationType } from "@/types/user";
+import type {
+	AdminUser,
+	AdminUserDetail,
+	Pagination as PaginationType,
+	UserEmotionItem,
+} from "@/types/user";
 import { formatDate, formatRelativeTime } from "@/utils/format";
 import { getInitials } from "@/utils/string";
 import { cn } from "@/utils/cn";
@@ -12,11 +17,50 @@ import Pagination from "@/components/Pagination";
 import "./UsersPage.css";
 
 type ActiveFilter = "" | "true" | "false";
+type EmotionPeriod = 30 | 90 | 365;
 
 // ── Confirm dialog state for lock action ─────────────────────────────────────
 interface LockConfirmState {
 	open: boolean;
 	reason: string;
+}
+
+// ── Emotion bars sub-component ────────────────────────────────────────────────
+function EmotionBars({ data }: { data: UserEmotionItem[] }) {
+	if (data.length === 0) {
+		return (
+			<p className="emotion-dist__empty">
+				No emotion data for this period.
+			</p>
+		);
+	}
+	const max = Math.max(...data.map((d) => d.count), 1);
+	return (
+		<div className="emotion-bars">
+			{data.map((item) => {
+				const key = item.emotion.toLowerCase();
+				return (
+					<div key={item.emotion} className="emotion-bars__row">
+						<span className="emotion-bars__label">
+							{item.emotion.charAt(0) +
+								item.emotion.slice(1).toLowerCase()}
+						</span>
+						<div className="emotion-bars__track">
+							<div
+								className={`emotion-bars__fill emotion-bars__fill--${key}`}
+								style={{
+									width: `${(item.count / max) * 100}%`,
+								}}
+							/>
+						</div>
+						<span className="emotion-bars__pct">
+							{item.percentage.toFixed(1)}%
+						</span>
+					</div>
+				);
+			})}
+		</div>
+	);
 }
 
 export default function UsersPage() {
@@ -33,6 +77,11 @@ export default function UsersPage() {
 	const [modalLoading, setModalLoading] = useState(false);
 	const [modalError, setModalError] = useState("");
 	const [statusUpdating, setStatusUpdating] = useState(false);
+
+	// Emotion distribution state
+	const [emotionData, setEmotionData] = useState<UserEmotionItem[]>([]);
+	const [emotionLoading, setEmotionLoading] = useState(false);
+	const [emotionPeriod, setEmotionPeriod] = useState<EmotionPeriod>(30);
 
 	// Lock confirm dialog state
 	const [lockConfirm, setLockConfirm] = useState<LockConfirmState>({
@@ -89,14 +138,37 @@ export default function UsersPage() {
 		setPage(1);
 	};
 
+	const fetchEmotionDistribution = async (
+		userId: string,
+		period: EmotionPeriod,
+	) => {
+		setEmotionLoading(true);
+		try {
+			const result = await usersService.getEmotionDistribution(
+				userId,
+				period,
+			);
+			setEmotionData(result.distribution);
+		} catch {
+			setEmotionData([]);
+		} finally {
+			setEmotionLoading(false);
+		}
+	};
+
 	const handleOpenUserDetails = async (user: AdminUser) => {
 		setSelectedUser({ ...user, streakDays: 0 });
 		setModalError("");
 		setModalLoading(true);
 		setLockConfirm({ open: false, reason: "" });
+		setEmotionData([]);
+		setEmotionPeriod(30);
 
 		try {
-			const detail = await usersService.getUserDetail(user.id);
+			const [detail] = await Promise.all([
+				usersService.getUserDetail(user.id),
+				fetchEmotionDistribution(user.id, 30),
+			]);
 			setSelectedUser(detail);
 		} catch (error: unknown) {
 			setModalError(
@@ -108,6 +180,12 @@ export default function UsersPage() {
 		} finally {
 			setModalLoading(false);
 		}
+	};
+
+	const handleEmotionPeriodChange = (period: EmotionPeriod) => {
+		if (!selectedUser) return;
+		setEmotionPeriod(period);
+		void fetchEmotionDistribution(selectedUser.id, period);
 	};
 
 	// ── Lock/Unlock user ────────────────────────────────────────────────────
@@ -488,15 +566,42 @@ export default function UsersPage() {
 								</div>
 							</div>
 
-							{/* Emotion Distribution — placeholder */}
-							<div className="users-modal__section-title">
-								Emotion Distribution
+							{/* Emotion Distribution */}
+							<div className="users-modal__section-header">
+								<div className="users-modal__section-title">
+									Emotion Distribution
+								</div>
+								<div className="emotion-dist__periods">
+									{([30, 90, 365] as EmotionPeriod[]).map(
+										(p) => (
+											<button
+												key={p}
+												type="button"
+												className={cn(
+													"emotion-dist__period-btn",
+													emotionPeriod === p &&
+														"emotion-dist__period-btn--active",
+												)}
+												onClick={() =>
+													handleEmotionPeriodChange(p)
+												}
+												disabled={emotionLoading}>
+												{p === 365 ? "1y" : `${p}d`}
+											</button>
+										),
+									)}
+								</div>
 							</div>
 							<div className="emotion-dist">
-								<p className="emotion-dist__empty">
-									Emotion distribution data will appear here
-									once available from the API.
-								</p>
+								{emotionLoading ? (
+									<div className="emotion-dist__loading">
+										<span className="skeleton skeleton--line" />
+										<span className="skeleton skeleton--line" />
+										<span className="skeleton skeleton--line" />
+									</div>
+								) : (
+									<EmotionBars data={emotionData} />
+								)}
 							</div>
 
 							{modalError && (

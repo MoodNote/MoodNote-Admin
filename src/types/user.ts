@@ -47,3 +47,21 @@ export interface UserStatusResponse {
     isActive: boolean
   }
 }
+
+export interface UserEmotionItem {
+  emotion: string
+  count: number
+  percentage: number
+}
+
+export interface UserEmotionDistributionData {
+  userId: string
+  period: number
+  distribution: UserEmotionItem[]
+}
+
+export interface UserEmotionDistributionResponse {
+  success: boolean
+  message: string
+  data: UserEmotionDistributionData
+}

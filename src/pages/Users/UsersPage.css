@@ -460,14 +460,20 @@
 	font-weight: 400;
 }
 
-/* Emotion distribution placeholder */
+/* Emotion distribution section */
+.users-modal__section-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: var(--sp-3);
+}
+
 .users-modal__section-title {
 	font-size: var(--text-xs);
 	font-weight: 700;
 	color: var(--color-text-secondary);
 	text-transform: uppercase;
 	letter-spacing: var(--tracking-wider);
-	margin-bottom: var(--sp-3);
 }
 
 .emotion-dist {
@@ -482,6 +488,130 @@
 	color: var(--color-text-secondary);
 	font-style: italic;
 	padding: var(--sp-3) 0;
+}
+
+.emotion-dist__periods {
+	display: flex;
+	gap: var(--sp-1);
+}
+
+.emotion-dist__period-btn {
+	height: 24px;
+	padding: 0 var(--sp-2);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-sm);
+	background: transparent;
+	color: var(--color-text-secondary);
+	font-size: var(--text-xs);
+	font-weight: 600;
+	cursor: pointer;
+	transition:
+		background var(--transition-colors),
+		border-color var(--transition-colors),
+		color var(--transition-colors);
+}
+
+.emotion-dist__period-btn:hover:not(:disabled) {
+	background: var(--color-bg-subtle);
+	color: var(--color-text);
+}
+
+.emotion-dist__period-btn--active {
+	background: var(--color-primary);
+	border-color: var(--color-primary);
+	color: #fff;
+}
+
+.emotion-dist__period-btn--active:hover:not(:disabled) {
+	background: var(--color-primary);
+	color: #fff;
+}
+
+.emotion-dist__period-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.emotion-dist__loading {
+	display: flex;
+	flex-direction: column;
+	gap: var(--sp-2);
+	padding: var(--sp-2) 0;
+}
+
+.skeleton--line {
+	display: block;
+	height: 14px;
+	border-radius: var(--radius-sm);
+	background: linear-gradient(
+		90deg,
+		var(--color-bg-subtle) 25%,
+		var(--color-bg-elevated) 50%,
+		var(--color-bg-subtle) 75%
+	);
+	background-size: 200% 100%;
+	animation: app-shimmer 1.5s infinite;
+}
+
+.skeleton--line:nth-child(1) { width: 100%; }
+.skeleton--line:nth-child(2) { width: 75%; }
+.skeleton--line:nth-child(3) { width: 88%; }
+
+/* Emotion bars — reused from analytics pattern */
+.emotion-bars {
+	display: flex;
+	flex-direction: column;
+	gap: var(--sp-2);
+}
+
+.emotion-bars__row {
+	display: flex;
+	align-items: center;
+	gap: var(--sp-2);
+}
+
+.emotion-bars__label {
+	width: 80px;
+	font-size: var(--text-xs);
+	color: var(--color-text-secondary);
+	flex-shrink: 0;
+	font-weight: 500;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.emotion-bars__track {
+	flex: 1;
+	height: 10px;
+	border-radius: var(--radius-full);
+	background: var(--color-bg-subtle);
+	border: 1px solid var(--color-border);
+	overflow: hidden;
+}
+
+.emotion-bars__fill {
+	height: 100%;
+	border-radius: var(--radius-full);
+	transition: width var(--dur-slow) var(--ease-out);
+}
+
+.emotion-bars__fill--enjoyment { background: linear-gradient(90deg, #f59e0b, #fde68a); }
+.emotion-bars__fill--sadness   { background: linear-gradient(90deg, #3b82f6, #93c5fd); }
+.emotion-bars__fill--anger     { background: linear-gradient(90deg, #ef4444, #fca5a5); }
+.emotion-bars__fill--fear      { background: linear-gradient(90deg, #8b5cf6, #c4b5fd); }
+.emotion-bars__fill--anxiety   { background: linear-gradient(90deg, #8b5cf6, #c4b5fd); }
+.emotion-bars__fill--neutral   { background: linear-gradient(90deg, #6b7280, #d1d5db); }
+.emotion-bars__fill--disgust   { background: linear-gradient(90deg, #84cc16, #bef264); }
+.emotion-bars__fill--surprise  { background: linear-gradient(90deg, #ec4899, #f9a8d4); }
+
+.emotion-bars__pct {
+	width: 44px;
+	text-align: right;
+	font-size: var(--text-xs);
+	font-weight: 600;
+	color: var(--color-text-secondary);
+	flex-shrink: 0;
 }
 
 .users-modal__note--error {

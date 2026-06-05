@@ -3,6 +3,7 @@ import type {
 	UsersResponse,
 	UserDetailResponse,
 	UserStatusResponse,
+	UserEmotionDistributionResponse,
 } from "@/types/user";
 import { withErrorHandling } from "@/utils/error";
 
@@ -39,6 +40,17 @@ class UsersService {
 				reason,
 			});
 
+			return data.data;
+		},
+	);
+
+	getEmotionDistribution = withErrorHandling(
+		async (userId: string, period?: number) => {
+			const { data } =
+				await api.get<UserEmotionDistributionResponse>(
+					`/admin/users/${userId}/emotion-distribution`,
+					period !== undefined ? { params: { period } } : undefined,
+				);
 			return data.data;
 		},
 	);

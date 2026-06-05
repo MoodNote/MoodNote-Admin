@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { dashboardService } from "@/services";
-import type { AdminStatsData } from "@/types/stats";
+import type { AdminStatsData, GrowthData, GrowthPeriod } from "@/types/stats";
 import type {
 	EmotionDistributionItem,
 	TopKeyword,
@@ -45,6 +45,98 @@ function EmotionBars({ data }: { data: EmotionDistributionItem[] }) {
 	);
 }
 
+function GrowthChart({
+	data,
+	period,
+	onPeriodChange,
+	loading,
+}: {
+	data: GrowthData | null;
+	period: GrowthPeriod;
+	onPeriodChange: (p: GrowthPeriod) => void;
+	loading: boolean;
+}) {
+	const PERIODS: GrowthPeriod[] = ["7d", "30d", "90d"];
+	const points = data?.dataPoints ?? [];
+	const max = Math.max(...points.map((p) => p.newUsers), 1);
+
+	const formatLabel = (date: string) => {
+		const d = new Date(date);
+		return `${d.getMonth() + 1}/${d.getDate()}`;
+	};
+
+	const step = period === "7d" ? 1 : period === "30d" ? 5 : 15;
+
+	return (
+		<div className="analytics-panel">
+			<div className="analytics-panel__header">
+				<h3 className="analytics-panel__title">User Growth</h3>
+				<div className="growth-periods">
+					{PERIODS.map((p) => (
+						<button
+							key={p}
+							type="button"
+							className={`growth-period-btn${period === p ? " growth-period-btn--active" : ""}`}
+							onClick={() => onPeriodChange(p)}
+							disabled={loading}>
+							{p}
+						</button>
+					))}
+				</div>
+			</div>
+
+			{loading ? (
+				<div className="growth-chart growth-chart--loading">
+					{Array.from({ length: period === "7d" ? 7 : 12 }).map(
+						(_, i) => (
+							<div
+								key={i}
+								className="trend-chart__bar-group">
+								<div className="trend-chart__bar-track">
+									<div
+										className="trend-chart__bar skeleton"
+										style={{
+											height: `${20 + Math.random() * 60}%`,
+										}}
+									/>
+								</div>
+							</div>
+						),
+					)}
+				</div>
+			) : points.length === 0 ? (
+				<p className="analytics-empty">No growth data available.</p>
+			) : (
+				<div className="growth-chart">
+					{points.map((point, i) => (
+						<div
+							key={point.date}
+							className="trend-chart__bar-group">
+							<span className="trend-chart__value">
+								{point.newUsers > 0 ? point.newUsers : ""}
+							</span>
+							<div className="trend-chart__bar-track">
+								<div
+									className="trend-chart__bar"
+									style={{
+										height: `${(point.newUsers / max) * 100}%`,
+									}}
+									title={`${point.date}: ${point.newUsers} new users`}
+								/>
+							</div>
+							{i % step === 0 && (
+								<span className="trend-chart__label">
+									{formatLabel(point.date)}
+								</span>
+							)}
+						</div>
+					))}
+				</div>
+			)}
+		</div>
+	);
+}
+
 function KeywordCloud({ data }: { data: TopKeyword[] }) {
 	if (data.length === 0) {
 		return (
@@ -72,6 +164,22 @@ export default function AnalyticsPage() {
 	const [error, setError] = useState("");
 	const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
+	const [growthData, setGrowthData] = useState<GrowthData | null>(null);
+	const [growthLoading, setGrowthLoading] = useState(false);
+	const [growthPeriod, setGrowthPeriod] = useState<GrowthPeriod>("30d");
+
+	const fetchGrowthData = useCallback(async (period: GrowthPeriod) => {
+		setGrowthLoading(true);
+		try {
+			const data = await dashboardService.getGrowthData(period);
+			setGrowthData(data);
+		} catch {
+			setGrowthData(null);
+		} finally {
+			setGrowthLoading(false);
+		}
+	}, []);
+
 	const fetchData = useCallback(async () => {
 		setLoading(true);
 		setError("");
@@ -92,7 +200,13 @@ export default function AnalyticsPage() {
 
 	useEffect(() => {
 		void fetchData();
-	}, [fetchData]);
+		void fetchGrowthData("30d");
+	}, [fetchData, fetchGrowthData]);
+
+	const handleGrowthPeriodChange = (period: GrowthPeriod) => {
+		setGrowthPeriod(period);
+		void fetchGrowthData(period);
+	};
 
 	const TABS: { id: ActiveTab; label: string }[] = [
 		{ id: "users", label: "User Analytics" },
@@ -200,6 +314,14 @@ export default function AnalyticsPage() {
 							</span>
 						</div>
 					</div>
+
+					{/* Growth chart */}
+					<GrowthChart
+						data={growthData}
+						period={growthPeriod}
+						onPeriodChange={handleGrowthPeriodChange}
+						loading={growthLoading}
+					/>
 				</div>
 			)}
 

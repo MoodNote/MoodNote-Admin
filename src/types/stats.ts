@@ -122,3 +122,23 @@ export interface MusicStatsResponse {
 		stats: MusicCatalogStats;
 	};
 }
+
+// ── GET /admin/stats/growth ───────────────────────────────────────────────────
+
+export type GrowthPeriod = "7d" | "30d" | "90d";
+
+export interface GrowthDataPoint {
+	date: string;
+	newUsers: number;
+}
+
+export interface GrowthData {
+	period: GrowthPeriod;
+	dataPoints: GrowthDataPoint[];
+}
+
+export interface GrowthResponse {
+	success: boolean;
+	message: string;
+	data: GrowthData;
+}

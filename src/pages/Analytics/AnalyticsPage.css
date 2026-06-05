@@ -137,17 +137,80 @@
 	border-color: var(--color-border-hover);
 }
 
+.analytics-panel__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: var(--sp-5);
+}
+
 .analytics-panel__title {
 	font-size: var(--text-md);
 	font-weight: 700;
-	margin-bottom: var(--sp-5);
 	color: var(--color-text);
+	margin: 0;
 }
 
 .analytics-empty {
 	color: var(--color-text-secondary);
 	font-size: var(--text-sm);
 	padding: var(--sp-5) 0;
+}
+
+/* ── Growth period toggle ── */
+.growth-periods {
+	display: flex;
+	gap: var(--sp-1);
+}
+
+.growth-period-btn {
+	height: 26px;
+	padding: 0 var(--sp-3);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-sm);
+	background: transparent;
+	color: var(--color-text-secondary);
+	font-size: var(--text-xs);
+	font-weight: 600;
+	cursor: pointer;
+	transition:
+		background var(--transition-colors),
+		border-color var(--transition-colors),
+		color var(--transition-colors);
+}
+
+.growth-period-btn:hover:not(:disabled) {
+	background: var(--color-bg-subtle);
+	color: var(--color-text);
+}
+
+.growth-period-btn--active {
+	background: var(--color-primary);
+	border-color: var(--color-primary);
+	color: #fff;
+}
+
+.growth-period-btn--active:hover:not(:disabled) {
+	background: var(--color-primary);
+	color: #fff;
+}
+
+.growth-period-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* ── Growth chart (reuses trend-chart pattern) ── */
+.growth-chart {
+	display: flex;
+	align-items: flex-end;
+	gap: 2px;
+	height: 180px;
+	padding-top: var(--sp-4);
+}
+
+.growth-chart--loading {
+	opacity: 0.4;
 }
 
 /* ── Trend chart (vertical bars) ── */
