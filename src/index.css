@@ -102,6 +102,12 @@
 	cursor: not-allowed;
 }
 
+.btn__icon {
+	width: 1em;
+	height: 1em;
+	flex-shrink: 0;
+}
+
 .btn--sm {
 	padding: var(--sp-1\.5) var(--sp-4);
 	font-size: var(--text-sm);

@@ -1,13 +1,12 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { Megaphone, Send, Users } from "lucide-react";
 import { notificationService } from "@/services";
 import type { AdminUser } from "@/types/user";
 import { getErrorMessage, isApiError } from "@/utils/error";
 import { notifySuccess } from "@/utils/toast";
 import UserMultiSelect from "@/components/UserMultiSelect/UserMultiSelect";
 import "./NotificationsPage.css";
-
-type Tab = "broadcast" | "send";
 
 interface FormState {
 	title: string;
@@ -48,8 +47,6 @@ function getApiErrorMessage(error: unknown, fallback: string): string {
 }
 
 export default function NotificationsPage() {
-	const [tab, setTab] = useState<Tab>("broadcast");
-
 	// Broadcast state
 	const [broadcast, setBroadcast] = useState<FormState>(EMPTY_FORM);
 	const [broadcastLoading, setBroadcastLoading] = useState(false);
@@ -179,21 +176,21 @@ export default function NotificationsPage() {
 				</p>
 			</div>
 
-			<div className="notifications-tabs">
-				<button
-					className={`notifications-tab ${tab === "broadcast" ? "notifications-tab--active" : ""}`}
-					onClick={() => setTab("broadcast")}>
-					Broadcast
-				</button>
-				<button
-					className={`notifications-tab ${tab === "send" ? "notifications-tab--active" : ""}`}
-					onClick={() => setTab("send")}>
-					Send to specific users
-				</button>
-			</div>
-
-			<div className="notifications-card">
-				{tab === "broadcast" && (
+			<div className="notifications-layout">
+				<section className="notifications-card notifications-card--broadcast">
+					<div className="notifications-card__head">
+						<span className="notifications-card__icon">
+							<Megaphone aria-hidden="true" />
+						</span>
+						<div>
+							<h3 className="notifications-card__title">
+								Broadcast
+							</h3>
+							<p className="notifications-card__subtitle">
+								All active, verified users
+							</p>
+						</div>
+					</div>
 					<form
 						className="notification-form"
 						onSubmit={handleBroadcast}
@@ -295,15 +292,41 @@ export default function NotificationsPage() {
 							type="submit"
 							className="notification-form__submit"
 							disabled={broadcastLoading}>
-							{broadcastLoading && (
-								<span className="spinner" aria-hidden="true" />
+							{broadcastLoading ? (
+								<>
+									<span
+										className="spinner"
+										aria-hidden="true"
+									/>
+									Sending...
+								</>
+							) : (
+								<>
+									<Send
+										className="notification-form__submit-icon"
+										aria-hidden="true"
+									/>
+									Send broadcast
+								</>
 							)}
-							{broadcastLoading ? "Sending..." : "Send broadcast"}
 						</button>
 					</form>
-				)}
+				</section>
 
-				{tab === "send" && (
+				<section className="notifications-card notifications-card--specific">
+					<div className="notifications-card__head">
+						<span className="notifications-card__icon">
+							<Users aria-hidden="true" />
+						</span>
+						<div>
+							<h3 className="notifications-card__title">
+								Specific users
+							</h3>
+							<p className="notifications-card__subtitle">
+								Targeted delivery with recipient search
+							</p>
+						</div>
+					</div>
 					<form
 						className="notification-form"
 						onSubmit={handleSend}
@@ -424,13 +447,26 @@ export default function NotificationsPage() {
 							type="submit"
 							className="notification-form__submit"
 							disabled={sendLoading}>
-							{sendLoading && (
-								<span className="spinner" aria-hidden="true" />
+							{sendLoading ? (
+								<>
+									<span
+										className="spinner"
+										aria-hidden="true"
+									/>
+									Sending...
+								</>
+							) : (
+								<>
+									<Send
+										className="notification-form__submit-icon"
+										aria-hidden="true"
+									/>
+									Send notification
+								</>
 							)}
-							{sendLoading ? "Sending..." : "Send notification"}
 						</button>
 					</form>
-				)}
+				</section>
 			</div>
 		</div>
 	);

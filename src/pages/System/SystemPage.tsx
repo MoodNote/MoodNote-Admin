@@ -1,8 +1,26 @@
 import { useCallback, useEffect, useState } from "react";
+import {
+	CircleCheck,
+	CircleHelp,
+	Database,
+	MemoryStick,
+	RefreshCw,
+	Server,
+	TriangleAlert,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { dashboardService } from "@/services";
 import type { AdminHealthData } from "@/types/health";
-import { formatDateTime } from "@/utils/format";
+import {
+	formatDateTime,
+	formatMegabytes,
+	formatPercent,
+	formatUptime,
+	getUsagePercent,
+} from "@/utils/format";
 import "./SystemPage.css";
+
+type SystemStatus = AdminHealthData["status"] | "unknown";
 
 function getDatabaseInfo(health: AdminHealthData | null): string {
 	if (!health) return "Unknown";
@@ -12,8 +30,36 @@ function getDatabaseInfo(health: AdminHealthData | null): string {
 }
 
 function getDatabaseTone(health: AdminHealthData | null): string {
-	if (!health) return "neutral";
+	if (!health) return "unknown";
 	return health.database.status === "ok" ? "success" : "danger";
+}
+
+function getSystemStatusMeta(status: SystemStatus): {
+	Icon: LucideIcon;
+	title: string;
+	subtitle: string;
+} {
+	if (status === "ok") {
+		return {
+			Icon: CircleCheck,
+			title: "All systems operational",
+			subtitle: "Core services are responding normally",
+		};
+	}
+
+	if (status === "degraded") {
+		return {
+			Icon: TriangleAlert,
+			title: "System performance degraded",
+			subtitle: "Review diagnostics and database response time",
+		};
+	}
+
+	return {
+		Icon: CircleHelp,
+		title: "Status unknown",
+		subtitle: "Connecting to system diagnostics",
+	};
 }
 
 export default function SystemPage() {
@@ -44,9 +90,13 @@ export default function SystemPage() {
 		return () => clearInterval(interval);
 	}, [fetchHealth]);
 
-	const uptimeStr = health
-		? `${Math.floor(health.uptime / 3600)}h ${Math.floor((health.uptime % 3600) / 60)}m`
-		: "—";
+	const systemStatus = health?.status ?? "unknown";
+	const statusMeta = getSystemStatusMeta(systemStatus);
+	const StatusIcon = statusMeta.Icon;
+	const uptimeStr = health ? formatUptime(health.uptime) : "—";
+	const memoryUsage = health
+		? getUsagePercent(health.memory.heapUsedMB, health.memory.heapTotalMB)
+		: 0;
 
 	return (
 		<div className="system-page page-enter">
@@ -63,7 +113,20 @@ export default function SystemPage() {
 						className="btn btn--primary btn--sm"
 						onClick={() => void fetchHealth()}
 						disabled={loading}>
-						{loading ? "Checking…" : "↻ Refresh"}
+						{loading ? (
+							<>
+								<span className="spinner" />
+								Checking...
+							</>
+						) : (
+							<>
+								<RefreshCw
+									className="btn__icon"
+									aria-hidden="true"
+								/>
+								Refresh
+							</>
+						)}
 					</button>
 				</div>
 			</div>
@@ -79,26 +142,19 @@ export default function SystemPage() {
 
 			{/* Status banner */}
 			<div
-				className={`system-status-banner system-status-banner--${health?.status ?? "unknown"}`}>
-				<span className="system-status-banner__icon">
-					{health?.status === "ok"
-						? "✅"
-						: health?.status === "degraded"
-							? "⚠️"
-							: "❓"}
+				className={`system-status-banner system-status-banner--${systemStatus}`}>
+				<span
+					className={`system-status-banner__icon system-status-banner__icon--${systemStatus}`}>
+					<StatusIcon aria-hidden="true" />
 				</span>
 				<div className="system-status-banner__text">
 					<strong className="system-status-banner__title">
-						{health?.status === "ok"
-							? "All systems operational"
-							: health?.status === "degraded"
-								? "System performance degraded"
-								: "Status unknown"}
+						{statusMeta.title}
 					</strong>
 					<span className="system-status-banner__sub">
 						{health?.version
 							? `Version ${health.version}`
-							: "Connecting…"}
+							: statusMeta.subtitle}
 					</span>
 				</div>
 			</div>
@@ -106,7 +162,12 @@ export default function SystemPage() {
 			<div className="system-grid">
 				{/* Uptime & Version */}
 				<div className="system-card">
-					<h3 className="system-card__title">Server Info</h3>
+					<h3 className="system-card__title">
+						<span className="system-card__title-icon">
+							<Server aria-hidden="true" />
+						</span>
+						Server Info
+					</h3>
 					<dl className="system-dl">
 						<div className="system-dl__row">
 							<dt>Status</dt>
@@ -130,7 +191,12 @@ export default function SystemPage() {
 
 				{/* Database */}
 				<div className="system-card">
-					<h3 className="system-card__title">Database</h3>
+					<h3 className="system-card__title">
+						<span className="system-card__title-icon">
+							<Database aria-hidden="true" />
+						</span>
+						Database
+					</h3>
 					<dl className="system-dl">
 						<div className="system-dl__row">
 							<dt>Status</dt>
@@ -150,13 +216,18 @@ export default function SystemPage() {
 
 				{/* Memory */}
 				<div className="system-card">
-					<h3 className="system-card__title">Memory</h3>
+					<h3 className="system-card__title">
+						<span className="system-card__title-icon">
+							<MemoryStick aria-hidden="true" />
+						</span>
+						Memory
+					</h3>
 					<dl className="system-dl">
 						<div className="system-dl__row">
 							<dt>Heap Used</dt>
 							<dd>
 								{health
-									? `${health.memory.heapUsedMB.toFixed(1)} MB`
+									? formatMegabytes(health.memory.heapUsedMB)
 									: "—"}
 							</dd>
 						</div>
@@ -164,7 +235,7 @@ export default function SystemPage() {
 							<dt>Heap Total</dt>
 							<dd>
 								{health
-									? `${health.memory.heapTotalMB.toFixed(1)} MB`
+									? formatMegabytes(health.memory.heapTotalMB)
 									: "—"}
 							</dd>
 						</div>
@@ -172,33 +243,26 @@ export default function SystemPage() {
 							<dt>RSS</dt>
 							<dd>
 								{health
-									? `${health.memory.rssMB.toFixed(1)} MB`
+									? formatMegabytes(health.memory.rssMB)
 									: "—"}
 							</dd>
 						</div>
 					</dl>
 
 					{/* Memory usage bar */}
-					{health && (
-						<div className="memory-bar">
-							<div className="memory-bar__track">
-								<div
-									className="memory-bar__fill"
-									style={{
-										width: `${Math.min((health.memory.heapUsedMB / health.memory.heapTotalMB) * 100, 100)}%`,
-									}}
-								/>
-							</div>
-							<span className="memory-bar__label">
-								{(
-									(health.memory.heapUsedMB /
-										health.memory.heapTotalMB) *
-									100
-								).toFixed(0)}
-								% used
-							</span>
+					<div className="memory-bar">
+						<div className="memory-bar__track">
+							<div
+								className={`memory-bar__fill memory-bar__fill--${systemStatus}`}
+								style={{ width: `${memoryUsage}%` }}
+							/>
 						</div>
-					)}
+						<span className="memory-bar__label">
+							{health
+								? `${formatPercent(memoryUsage)} used`
+								: "Memory data unavailable"}
+						</span>
+					</div>
 				</div>
 			</div>
 		</div>
