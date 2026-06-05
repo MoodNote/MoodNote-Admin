@@ -1,4 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
+import {
+	Area,
+	AreaChart,
+	Bar,
+	BarChart,
+	CartesianGrid,
+	Cell,
+	Pie,
+	PieChart,
+	ResponsiveContainer,
+	Tooltip,
+	XAxis,
+	YAxis,
+} from "recharts";
 import { dashboardService } from "@/services";
 import type { AdminStatsData, GrowthData, GrowthPeriod } from "@/types/stats";
 import type {
@@ -10,37 +24,135 @@ import "./AnalyticsPage.css";
 
 type ActiveTab = "users" | "content";
 
-function EmotionBars({ data }: { data: EmotionDistributionItem[] }) {
+const CHART_GRID = "rgba(148, 163, 184, 0.14)";
+const CHART_AXIS = "rgba(203, 213, 225, 0.72)";
+const CHART_TOOLTIP = {
+	backgroundColor: "var(--color-bg-card)",
+	border: "1px solid var(--color-border-hover)",
+	borderRadius: "10px",
+	boxShadow: "var(--shadow-lg)",
+	color: "var(--color-text)",
+};
+const CHART_TOOLTIP_LABEL = {
+	color: "var(--color-text)",
+	fontWeight: 700,
+};
+const CHART_TOOLTIP_ITEM = {
+	color: "var(--color-text-secondary)",
+};
+const SKELETON_HEIGHTS = [44, 72, 58, 86, 64, 78, 50, 68, 54, 82, 60, 74];
+
+function formatChartValue(value: unknown): string {
+	const numeric =
+		typeof value === "number"
+			? value
+			: typeof value === "string"
+				? Number(value)
+				: NaN;
+
+	return Number.isFinite(numeric) ? formatCompact(numeric) : String(value);
+}
+
+function formatDateLabel(date: string): string {
+	const d = new Date(date);
+	return `${d.getMonth() + 1}/${d.getDate()}`;
+}
+
+function formatEmotionName(emotion: string): string {
+	return emotion.charAt(0) + emotion.slice(1).toLowerCase();
+}
+
+function getEmotionColor(emotion: string): string {
+	const key = emotion.toLowerCase();
+	const colors: Record<string, string> = {
+		joy: "var(--mood-enjoyment)",
+		enjoyment: "var(--mood-enjoyment)",
+		sadness: "var(--mood-sadness)",
+		anger: "var(--mood-anger)",
+		anxiety: "var(--mood-fear)",
+		fear: "var(--mood-fear)",
+		surprise: "var(--mood-surprise)",
+		disgust: "var(--mood-disgust)",
+		neutral: "var(--mood-other)",
+	};
+
+	return colors[key] ?? "var(--mood-other)";
+}
+
+function ChartSkeleton({ bars = 12 }: { bars?: number }) {
+	return (
+		<div className="analytics-chart-skeleton" aria-hidden="true">
+			{Array.from({ length: bars }).map((_, i) => (
+				<span
+					key={i}
+					style={{
+						height: `${SKELETON_HEIGHTS[i % SKELETON_HEIGHTS.length]}%`,
+					}}
+				/>
+			))}
+		</div>
+	);
+}
+
+function EmotionChart({ data }: { data: EmotionDistributionItem[] }) {
 	if (data.length === 0) {
 		return (
 			<p className="analytics-empty">No emotion data available.</p>
 		);
 	}
-	const max = Math.max(...data.map((d) => d.count), 1);
+
+	const chartData = data.map((item) => ({
+		name: formatEmotionName(item.emotion),
+		count: item.count,
+		color: getEmotionColor(item.emotion),
+	}));
+
 	return (
-		<div className="emotion-bars">
-			{data.map((item) => {
-				const key = item.emotion.toLowerCase();
-				return (
-					<div
-						key={item.emotion}
-						className="emotion-bars__row">
-						<span className="emotion-bars__label">
-							{item.emotion.charAt(0) +
-								item.emotion.slice(1).toLowerCase()}
-						</span>
-						<div className="emotion-bars__track">
-							<div
-								className={`emotion-bars__fill emotion-bars__fill--${key}`}
-								style={{ width: `${(item.count / max) * 100}%` }}
-							/>
-						</div>
-						<span className="emotion-bars__value">
-							{formatCompact(item.count)}
-						</span>
-					</div>
-				);
-			})}
+		<div
+			className="analytics-chart-frame"
+			style={{ height: `${Math.max(220, chartData.length * 40)}px` }}>
+			<ResponsiveContainer width="100%" height="100%">
+				<BarChart
+					data={chartData}
+					layout="vertical"
+					margin={{ top: 4, right: 18, left: 4, bottom: 4 }}>
+					<CartesianGrid
+						stroke={CHART_GRID}
+						horizontal={false}
+					/>
+					<XAxis
+						type="number"
+						axisLine={false}
+						tickLine={false}
+						tick={{ fill: CHART_AXIS, fontSize: 11 }}
+						tickFormatter={formatCompact}
+						allowDecimals={false}
+					/>
+					<YAxis
+						type="category"
+						dataKey="name"
+						width={84}
+						axisLine={false}
+						tickLine={false}
+						tick={{ fill: CHART_AXIS, fontSize: 12 }}
+					/>
+					<Tooltip
+						cursor={{ fill: "rgba(255, 255, 255, 0.04)" }}
+						contentStyle={CHART_TOOLTIP}
+						labelStyle={CHART_TOOLTIP_LABEL}
+						itemStyle={CHART_TOOLTIP_ITEM}
+						formatter={(value) => [
+							formatChartValue(value),
+							"Entries",
+						]}
+					/>
+					<Bar dataKey="count" radius={[0, 8, 8, 0]} barSize={14}>
+						{chartData.map((item) => (
+							<Cell key={item.name} fill={item.color} />
+						))}
+					</Bar>
+				</BarChart>
+			</ResponsiveContainer>
 		</div>
 	);
 }
@@ -58,14 +170,11 @@ function GrowthChart({
 }) {
 	const PERIODS: GrowthPeriod[] = ["7d", "30d", "90d"];
 	const points = data?.dataPoints ?? [];
-	const max = Math.max(...points.map((p) => p.newUsers), 1);
-
-	const formatLabel = (date: string) => {
-		const d = new Date(date);
-		return `${d.getMonth() + 1}/${d.getDate()}`;
-	};
-
-	const step = period === "7d" ? 1 : period === "30d" ? 5 : 15;
+	const chartData = points.map((point) => ({
+		...point,
+		label: formatDateLabel(point.date),
+	}));
+	const interval = period === "7d" ? 0 : period === "30d" ? 4 : 14;
 
 	return (
 		<div className="analytics-panel">
@@ -86,73 +195,249 @@ function GrowthChart({
 			</div>
 
 			{loading ? (
-				<div className="growth-chart growth-chart--loading">
-					{Array.from({ length: period === "7d" ? 7 : 12 }).map(
-						(_, i) => (
-							<div
-								key={i}
-								className="trend-chart__bar-group">
-								<div className="trend-chart__bar-track">
-									<div
-										className="trend-chart__bar skeleton"
-										style={{
-											height: `${20 + Math.random() * 60}%`,
-										}}
-									/>
-								</div>
-							</div>
-						),
-					)}
+				<div className="analytics-chart-frame analytics-chart-frame--growth">
+					<ChartSkeleton bars={period === "7d" ? 7 : 12} />
 				</div>
 			) : points.length === 0 ? (
 				<p className="analytics-empty">No growth data available.</p>
 			) : (
-				<div className="growth-chart">
-					{points.map((point, i) => (
-						<div
-							key={point.date}
-							className="trend-chart__bar-group">
-							<span className="trend-chart__value">
-								{point.newUsers > 0 ? point.newUsers : ""}
-							</span>
-							<div className="trend-chart__bar-track">
-								<div
-									className="trend-chart__bar"
-									style={{
-										height: `${(point.newUsers / max) * 100}%`,
-									}}
-									title={`${point.date}: ${point.newUsers} new users`}
-								/>
-							</div>
-							{i % step === 0 && (
-								<span className="trend-chart__label">
-									{formatLabel(point.date)}
-								</span>
-							)}
-						</div>
-					))}
+				<div className="analytics-chart-frame analytics-chart-frame--growth">
+					<ResponsiveContainer width="100%" height="100%">
+						<AreaChart
+							data={chartData}
+							margin={{ top: 8, right: 14, left: -14, bottom: 0 }}>
+							<defs>
+								<linearGradient
+									id={`growthGradient-${period}`}
+									x1="0"
+									y1="0"
+									x2="0"
+									y2="1">
+									<stop
+										offset="5%"
+										stopColor="var(--color-info)"
+										stopOpacity={0.48}
+									/>
+									<stop
+										offset="95%"
+										stopColor="var(--color-info)"
+										stopOpacity={0.02}
+									/>
+								</linearGradient>
+							</defs>
+							<CartesianGrid
+								stroke={CHART_GRID}
+								vertical={false}
+							/>
+							<XAxis
+								dataKey="label"
+								axisLine={false}
+								tickLine={false}
+								tick={{ fill: CHART_AXIS, fontSize: 11 }}
+								interval={interval}
+								minTickGap={10}
+							/>
+							<YAxis
+								axisLine={false}
+								tickLine={false}
+								tick={{ fill: CHART_AXIS, fontSize: 11 }}
+								tickFormatter={formatCompact}
+								allowDecimals={false}
+								width={44}
+							/>
+							<Tooltip
+								cursor={{
+									stroke: "rgba(116, 176, 255, 0.28)",
+									strokeWidth: 1,
+								}}
+								contentStyle={CHART_TOOLTIP}
+								labelStyle={CHART_TOOLTIP_LABEL}
+								itemStyle={CHART_TOOLTIP_ITEM}
+								formatter={(value) => [
+									formatChartValue(value),
+									"New users",
+								]}
+							/>
+							<Area
+								type="monotone"
+								dataKey="newUsers"
+								stroke="var(--color-info)"
+								strokeWidth={2.5}
+								fill={`url(#growthGradient-${period})`}
+								dot={period === "7d"}
+								activeDot={{ r: 5 }}
+							/>
+						</AreaChart>
+					</ResponsiveContainer>
 				</div>
 			)}
 		</div>
 	);
 }
 
-function KeywordCloud({ data }: { data: TopKeyword[] }) {
+function UserStatusChart({
+	users,
+	loading,
+}: {
+	users: AdminStatsData["users"] | null;
+	loading: boolean;
+}) {
+	if (loading) {
+		return (
+			<div className="analytics-panel analytics-panel--status">
+				<h3 className="analytics-panel__title">User Status</h3>
+				<div className="analytics-chart-frame analytics-chart-frame--donut">
+					<ChartSkeleton bars={6} />
+				</div>
+			</div>
+		);
+	}
+
+	if (!users || users.total === 0) {
+		return (
+			<div className="analytics-panel analytics-panel--status">
+				<h3 className="analytics-panel__title">User Status</h3>
+				<p className="analytics-empty">No user status data available.</p>
+			</div>
+		);
+	}
+
+	const chartData = [
+		{
+			name: "Active",
+			value: users.active,
+			color: "var(--color-success)",
+		},
+		{
+			name: "Inactive",
+			value: users.inactive,
+			color: "var(--color-info)",
+		},
+	].filter((item) => item.value > 0);
+	const activePercent = Math.round((users.active / users.total) * 100);
+
+	return (
+		<div className="analytics-panel analytics-panel--status">
+			<h3 className="analytics-panel__title">User Status</h3>
+			<div className="analytics-chart-frame analytics-chart-frame--donut">
+				<ResponsiveContainer width="100%" height="100%">
+					<PieChart>
+						<Pie
+							data={chartData}
+							dataKey="value"
+							nameKey="name"
+							innerRadius={58}
+							outerRadius={86}
+							paddingAngle={4}
+							stroke="var(--color-bg-card)"
+							strokeWidth={3}>
+							{chartData.map((item) => (
+								<Cell key={item.name} fill={item.color} />
+							))}
+						</Pie>
+						<Tooltip
+							contentStyle={CHART_TOOLTIP}
+							labelStyle={CHART_TOOLTIP_LABEL}
+							itemStyle={CHART_TOOLTIP_ITEM}
+							formatter={(value) => [
+								formatChartValue(value),
+								"Users",
+							]}
+						/>
+						<text
+							x="50%"
+							y="47%"
+							textAnchor="middle"
+							dominantBaseline="middle"
+							className="user-status-chart__value">
+							{activePercent}%
+						</text>
+						<text
+							x="50%"
+							y="59%"
+							textAnchor="middle"
+							dominantBaseline="middle"
+							className="user-status-chart__label">
+							active
+						</text>
+					</PieChart>
+				</ResponsiveContainer>
+			</div>
+			<div className="user-status-legend">
+				{chartData.map((item) => (
+					<div key={item.name} className="user-status-legend__item">
+						<span
+							className="user-status-legend__dot"
+							style={{ background: item.color }}
+						/>
+						<span>{item.name}</span>
+						<strong>{formatCompact(item.value)}</strong>
+					</div>
+				))}
+			</div>
+		</div>
+	);
+}
+
+function KeywordChart({ data }: { data: TopKeyword[] }) {
 	if (data.length === 0) {
 		return (
 			<p className="analytics-empty">No keyword data available.</p>
 		);
 	}
+
+	const chartData = data.slice(0, 10).map((kw) => ({
+		name: kw.keyword,
+		count: kw.count,
+	}));
+
 	return (
-		<div className="keyword-cloud">
-			{data.map((kw) => (
-				<span
-					key={kw.keyword}
-					className="keyword-cloud__tag">
-					{kw.keyword}
-					<span className="keyword-cloud__count">{kw.count}</span>
-				</span>
-			))}
+		<div
+			className="analytics-chart-frame"
+			style={{ height: `${Math.max(240, chartData.length * 34)}px` }}>
+			<ResponsiveContainer width="100%" height="100%">
+				<BarChart
+					data={chartData}
+					layout="vertical"
+					margin={{ top: 4, right: 18, left: 4, bottom: 4 }}>
+					<CartesianGrid
+						stroke={CHART_GRID}
+						horizontal={false}
+					/>
+					<XAxis
+						type="number"
+						axisLine={false}
+						tickLine={false}
+						tick={{ fill: CHART_AXIS, fontSize: 11 }}
+						tickFormatter={formatCompact}
+						allowDecimals={false}
+					/>
+					<YAxis
+						type="category"
+						dataKey="name"
+						width={112}
+						axisLine={false}
+						tickLine={false}
+						tick={{ fill: CHART_AXIS, fontSize: 12 }}
+					/>
+					<Tooltip
+						cursor={{ fill: "rgba(255, 255, 255, 0.04)" }}
+						contentStyle={CHART_TOOLTIP}
+						labelStyle={CHART_TOOLTIP_LABEL}
+						itemStyle={CHART_TOOLTIP_ITEM}
+						formatter={(value) => [
+							formatChartValue(value),
+							"Mentions",
+						]}
+					/>
+					<Bar
+						dataKey="count"
+						fill="var(--color-accent)"
+						radius={[0, 8, 8, 0]}
+						barSize={14}
+					/>
+				</BarChart>
+			</ResponsiveContainer>
 		</div>
 	);
 }
@@ -315,13 +600,18 @@ export default function AnalyticsPage() {
 						</div>
 					</div>
 
-					{/* Growth chart */}
-					<GrowthChart
-						data={growthData}
-						period={growthPeriod}
-						onPeriodChange={handleGrowthPeriodChange}
-						loading={growthLoading}
-					/>
+					<div className="analytics-chart-grid analytics-chart-grid--users">
+						<GrowthChart
+							data={growthData}
+							period={growthPeriod}
+							onPeriodChange={handleGrowthPeriodChange}
+							loading={growthLoading}
+						/>
+						<UserStatusChart
+							users={stats?.users ?? null}
+							loading={loading}
+						/>
+					</div>
 				</div>
 			)}
 
@@ -379,26 +669,23 @@ export default function AnalyticsPage() {
 						</div>
 					</div>
 
-					{/* Emotion distribution */}
-					{stats?.emotionDistribution &&
-						stats.emotionDistribution.length > 0 && (
-							<div className="analytics-panel">
-								<h3 className="analytics-panel__title">
-									Emotion Distribution
-								</h3>
-								<EmotionBars data={stats.emotionDistribution} />
-							</div>
-						)}
+					<div className="analytics-chart-grid">
+						<div className="analytics-panel">
+							<h3 className="analytics-panel__title">
+								Emotion Distribution
+							</h3>
+							<EmotionChart
+								data={stats?.emotionDistribution ?? []}
+							/>
+						</div>
 
-					{/* Top keywords */}
-					{stats?.topKeywords && stats.topKeywords.length > 0 && (
 						<div className="analytics-panel">
 							<h3 className="analytics-panel__title">
 								Top Keywords
 							</h3>
-							<KeywordCloud data={stats.topKeywords} />
+							<KeywordChart data={stats?.topKeywords ?? []} />
 						</div>
-					)}
+					</div>
 				</div>
 			)}
 		</div>

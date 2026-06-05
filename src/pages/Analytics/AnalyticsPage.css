@@ -157,6 +157,100 @@
 	padding: var(--sp-5) 0;
 }
 
+/* ── Chart layout ── */
+.analytics-chart-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+	gap: var(--sp-5);
+	align-items: stretch;
+}
+
+.analytics-chart-grid--users {
+	grid-template-columns: minmax(0, 2fr) minmax(280px, 0.8fr);
+}
+
+.analytics-chart-frame {
+	width: 100%;
+	height: 260px;
+	min-width: 0;
+	margin-top: var(--sp-4);
+}
+
+.analytics-chart-frame--growth {
+	height: 300px;
+}
+
+.analytics-chart-frame--donut {
+	height: 230px;
+	margin-top: var(--sp-3);
+}
+
+.analytics-chart-skeleton {
+	height: 100%;
+	display: flex;
+	align-items: flex-end;
+	gap: var(--sp-2);
+	padding: var(--sp-5) var(--sp-2) var(--sp-2);
+	opacity: 0.55;
+}
+
+.analytics-chart-skeleton span {
+	flex: 1;
+	min-width: 10px;
+	border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+	background: linear-gradient(
+		180deg,
+		var(--color-primary-light),
+		rgba(116, 176, 255, 0.08)
+	);
+	animation: app-shimmer 1.5s infinite;
+}
+
+.analytics-panel--status {
+	min-width: 0;
+}
+
+.user-status-chart__value {
+	fill: var(--color-text);
+	font-size: 24px;
+	font-weight: 800;
+}
+
+.user-status-chart__label {
+	fill: var(--color-text-secondary);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: var(--tracking-wide);
+}
+
+.user-status-legend {
+	display: flex;
+	flex-direction: column;
+	gap: var(--sp-2);
+	margin-top: var(--sp-2);
+}
+
+.user-status-legend__item {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	align-items: center;
+	gap: var(--sp-2);
+	font-size: var(--text-sm);
+	color: var(--color-text-secondary);
+}
+
+.user-status-legend__item strong {
+	color: var(--color-text);
+	font-weight: 800;
+}
+
+.user-status-legend__dot {
+	width: 9px;
+	height: 9px;
+	border-radius: var(--radius-full);
+	box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.04);
+}
+
 /* ── Growth period toggle ── */
 .growth-periods {
 	display: flex;
@@ -200,158 +294,28 @@
 	cursor: not-allowed;
 }
 
-/* ── Growth chart (reuses trend-chart pattern) ── */
-.growth-chart {
-	display: flex;
-	align-items: flex-end;
-	gap: 2px;
-	height: 180px;
-	padding-top: var(--sp-4);
+@media (max-width: 1080px) {
+	.analytics-chart-grid--users {
+		grid-template-columns: 1fr;
+	}
 }
 
-.growth-chart--loading {
-	opacity: 0.4;
-}
+@media (max-width: 640px) {
+	.analytics-panel__header {
+		align-items: flex-start;
+		flex-direction: column;
+		gap: var(--sp-3);
+	}
 
-/* ── Trend chart (vertical bars) ── */
-.trend-chart {
-	display: flex;
-	align-items: flex-end;
-	gap: var(--sp-1);
-	height: 180px;
-	padding-top: var(--sp-4);
-}
+	.analytics-chart-grid {
+		grid-template-columns: 1fr;
+	}
 
-.trend-chart__bar-group {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: var(--sp-1);
-	min-width: 0;
-}
+	.analytics-chart-frame {
+		height: 240px;
+	}
 
-.trend-chart__bar-track {
-	flex: 1;
-	width: 100%;
-	max-width: 32px;
-	display: flex;
-	align-items: flex-end;
-	border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-	overflow: hidden;
-}
-
-.trend-chart__bar {
-	width: 100%;
-	background: linear-gradient(180deg, var(--color-primary), var(--color-accent));
-	border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-	min-height: 2px;
-	transition: height var(--dur-slow) var(--ease-out);
-	animation: bar-fill var(--dur-slower) var(--ease-out) both;
-	transform-origin: bottom;
-}
-
-.trend-chart__value {
-	font-size: 10px;
-	font-weight: 700;
-	color: var(--color-text);
-	white-space: nowrap;
-}
-
-.trend-chart__label {
-	font-size: 9px;
-	color: var(--color-text-muted);
-	white-space: nowrap;
-}
-
-/* ── Emotion bars ── */
-.emotion-bars {
-	display: flex;
-	flex-direction: column;
-	gap: var(--sp-3);
-}
-
-.emotion-bars__row {
-	display: flex;
-	align-items: center;
-	gap: var(--sp-3);
-}
-
-.emotion-bars__label {
-	width: 72px;
-	font-size: var(--text-xs);
-	color: var(--color-text-secondary);
-	flex-shrink: 0;
-	font-weight: 500;
-}
-
-.emotion-bars__track {
-	flex: 1;
-	height: 12px;
-	border-radius: var(--radius-full);
-	background: var(--color-bg-subtle);
-	border: 1px solid var(--color-border);
-	overflow: hidden;
-}
-
-.emotion-bars__fill {
-	height: 100%;
-	border-radius: var(--radius-full);
-	transition: width var(--dur-slow) var(--ease-out);
-	animation: bar-fill var(--dur-slower) var(--ease-out) both;
-	transform-origin: left;
-}
-
-/* Emotion fills mapped to shared MoodNote-FE mood palette */
-.emotion-bars__fill--joy      { background: linear-gradient(90deg, var(--mood-enjoyment), #ffdf8c); }
-.emotion-bars__fill--sadness  { background: linear-gradient(90deg, var(--mood-sadness), #9bc6ff); }
-.emotion-bars__fill--anger    { background: linear-gradient(90deg, var(--mood-anger), #ff9090); }
-.emotion-bars__fill--anxiety  { background: linear-gradient(90deg, var(--mood-fear), #d4a6fd); }
-.emotion-bars__fill--fear     { background: linear-gradient(90deg, var(--mood-fear), #d4a6fd); }
-.emotion-bars__fill--neutral  { background: linear-gradient(90deg, var(--mood-other), #b8c2d0); }
-
-.emotion-bars__value {
-	width: 48px;
-	text-align: right;
-	font-size: var(--text-xs);
-	font-weight: 700;
-	color: var(--color-text);
-}
-
-/* ── Keyword cloud ── */
-.keyword-cloud {
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--sp-2);
-}
-
-.keyword-cloud__tag {
-	display: inline-flex;
-	align-items: center;
-	gap: var(--sp-1\.5);
-	padding: var(--sp-1) var(--sp-3);
-	border-radius: var(--radius-full);
-	border: 1px solid var(--color-border);
-	background: var(--color-bg-elevated);
-	font-size: var(--text-xs);
-	font-weight: 500;
-	color: var(--color-text);
-	transition:
-		background var(--transition-colors),
-		border-color var(--transition-colors),
-		transform var(--dur-fast) var(--ease-out);
-	cursor: default;
-}
-
-.keyword-cloud__tag:hover {
-	background: var(--color-primary-light);
-	border-color: var(--color-primary);
-	color: var(--color-primary);
-	transform: translateY(-1px);
-}
-
-.keyword-cloud__count {
-	color: var(--color-text-muted);
-	font-size: 10px;
-	font-weight: 600;
+	.analytics-chart-frame--growth {
+		height: 270px;
+	}
 }
