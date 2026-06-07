@@ -57,71 +57,167 @@ export default function LoginPage() {
 
 	return (
 		<div className="login-page">
-			<div className="login-card">
-				<div className="login-card__header">
+			{/* ── LEFT PANEL ── */}
+			<div className="login-left">
+				<div className="login-aurora login-aurora--1" />
+				<div className="login-aurora login-aurora--2" />
+				<div className="login-aurora login-aurora--3" />
+
+				<div className="login-orb login-orb--joy" />
+				<div className="login-orb login-orb--sadness" />
+				<div className="login-orb login-orb--anger" />
+				<div className="login-orb login-orb--fear" />
+				<div className="login-orb login-orb--surprise" />
+				<div className="login-orb login-orb--disgust" />
+
+				<div className="login-left__content">
 					<img
-						className="login-card__logo"
 						src={LogoWhite}
 						alt="MoodNote"
+						className="login-left__logo"
 					/>
-					<h1 className="login-card__title">MoodNote Admin</h1>
-					<p className="login-card__subtitle">
-						Sign in to your account
+					<h1 className="login-left__app-name">MoodNote</h1>
+					<p className="login-left__tagline">
+						Your emotional wellness command center
 					</p>
+					<div className="login-left__moods">
+						<span className="mood-chip mood-chip--joy">Joy</span>
+						<span className="mood-chip mood-chip--sadness">
+							Sadness
+						</span>
+						<span className="mood-chip mood-chip--anger">Anger</span>
+						<span className="mood-chip mood-chip--fear">Fear</span>
+						<span className="mood-chip mood-chip--surprise">
+							Surprise
+						</span>
+						<span className="mood-chip mood-chip--disgust">
+							Disgust
+						</span>
+					</div>
 				</div>
 
-				<form
-					className="login-form"
-					onSubmit={handleSubmit}
-					noValidate>
-					{error && <p className="login-form__error">{error}</p>}
+				<p className="login-left__footer">© 2025 MoodNote Admin</p>
+			</div>
 
-					<div className="login-form__group">
-						<label
-							className="login-form__label"
-							htmlFor="email">
-							Email
-						</label>
-						<input
-							id="email"
-							type="email"
-							className="login-form__input"
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-							placeholder="admin@example.com"
-							required
-							autoComplete="email"
+			{/* ── RIGHT PANEL ── */}
+			<div className="login-right">
+				<div className="login-right__orb login-right__orb--fear" />
+				<div className="login-right__orb login-right__orb--sadness" />
+				<div className="login-right__content">
+					<div className="login-right__header">
+						<img
+							src={LogoWhite}
+							alt="MoodNote"
+							className="login-right__logo"
 						/>
+						<h2 className="login-right__title">Welcome back</h2>
+						<p className="login-right__subtitle">
+							Sign in to your admin account
+						</p>
 					</div>
 
-					<div className="login-form__group">
-						<label
-							className="login-form__label"
-							htmlFor="password">
-							Password
-						</label>
-						<input
-							id="password"
-							type="password"
-							className="login-form__input"
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
-							placeholder="••••••••"
-							required
-							autoComplete="current-password"
-						/>
-					</div>
-
-					<button
-						type="submit"
-						className="login-form__submit"
-						disabled={loading}>
-						{loading && (
-							<span className="spinner" aria-hidden="true" />
+					<form
+						className="login-form"
+						onSubmit={handleSubmit}
+						noValidate>
+						{error && (
+							<p className="login-form__error">{error}</p>
 						)}
-						{loading ? "Signing in..." : "Sign in"}
-					</button>
-				</form>
+
+						<div className="login-form__group">
+							<label
+								className="login-form__label"
+								htmlFor="email">
+								Email
+							</label>
+							<div className="login-form__input-wrapper">
+								<span className="login-form__input-icon">
+									<svg
+										width="16"
+										height="16"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										strokeWidth="2"
+										strokeLinecap="round"
+										strokeLinejoin="round">
+										<rect
+											x="2"
+											y="4"
+											width="20"
+											height="16"
+											rx="2"
+										/>
+										<path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+									</svg>
+								</span>
+								<input
+									id="email"
+									type="email"
+									className="login-form__input"
+									value={email}
+									onChange={(e) => setEmail(e.target.value)}
+									placeholder="admin@example.com"
+									required
+									autoComplete="email"
+								/>
+							</div>
+						</div>
+
+						<div className="login-form__group">
+							<label
+								className="login-form__label"
+								htmlFor="password">
+								Password
+							</label>
+							<div className="login-form__input-wrapper">
+								<span className="login-form__input-icon">
+									<svg
+										width="16"
+										height="16"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										strokeWidth="2"
+										strokeLinecap="round"
+										strokeLinejoin="round">
+										<rect
+											x="3"
+											y="11"
+											width="18"
+											height="11"
+											rx="2"
+											ry="2"
+										/>
+										<path d="M7 11V7a5 5 0 0 1 10 0v4" />
+									</svg>
+								</span>
+								<input
+									id="password"
+									type="password"
+									className="login-form__input"
+									value={password}
+									onChange={(e) =>
+										setPassword(e.target.value)
+									}
+									placeholder="••••••••"
+									required
+									autoComplete="current-password"
+								/>
+							</div>
+						</div>
+
+						<button
+							type="submit"
+							className="login-form__submit"
+							disabled={loading}>
+							{loading && (
+								<span className="spinner" aria-hidden="true" />
+							)}
+							{loading ? "Signing in..." : "Sign in"}
+						</button>
+					</form>
+				</div>
 			</div>
 		</div>
 	);
