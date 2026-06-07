@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import type { FormEvent } from "react";
+import { Pencil, Trash2 } from "lucide-react";
 import { moodTagsService } from "@/services";
 import type { MoodTag, MoodTagType, MoodTagsQueryParams } from "@/types/moodTag";
 import type { Pagination as PaginationType } from "@/types/user";
@@ -290,7 +291,7 @@ export default function MoodTagsPage() {
 												title="Edit"
 												aria-label={`Edit ${tag.name}`}
 												onClick={() => openEdit(tag)}>
-												✏️
+												<Pencil aria-hidden="true" />
 											</button>
 											<button
 												type="button"
@@ -298,7 +299,7 @@ export default function MoodTagsPage() {
 												title="Delete"
 												aria-label={`Delete ${tag.name}`}
 												onClick={() => setDeleteTarget(tag)}>
-												🗑️
+												<Trash2 aria-hidden="true" />
 											</button>
 										</div>
 									</td>

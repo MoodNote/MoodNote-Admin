@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import type { FormEvent } from "react";
+import { Pencil, Trash2 } from "lucide-react";
 import { musicService } from "@/services";
 import type { Genre } from "@/types/music";
 import type { Pagination as PaginationType } from "@/types/user";
@@ -218,14 +219,14 @@ export default function GenresTab() {
 												title="Edit"
 												aria-label={`Edit ${g.name}`}
 												onClick={() => openEdit(g)}>
-												✏️
+												<Pencil aria-hidden="true" />
 											</button>
 											<button
 												className="action-btn action-btn--delete"
 												title="Delete"
 												aria-label={`Delete ${g.name}`}
 												onClick={() => setDeleteTarget(g)}>
-												🗑️
+												<Trash2 aria-hidden="true" />
 											</button>
 										</div>
 									</td>

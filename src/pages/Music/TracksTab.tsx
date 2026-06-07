@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import type { ChangeEvent, FormEvent } from "react";
+import { Pencil, Trash2 } from "lucide-react";
 import { musicService } from "@/services";
 import type {
 	Artist,
@@ -631,14 +632,14 @@ export default function TracksTab() {
 												title="Edit track"
 												aria-label={`Edit ${t.trackName}`}
 												onClick={() => openEdit(t)}>
-												✏️
+												<Pencil aria-hidden="true" />
 											</button>
 											<button
 												className="action-btn action-btn--delete"
 												title="Delete track"
 												aria-label={`Delete ${t.trackName}`}
 												onClick={() => setDeleteTarget(t)}>
-												🗑️
+												<Trash2 aria-hidden="true" />
 											</button>
 										</div>
 									</td>

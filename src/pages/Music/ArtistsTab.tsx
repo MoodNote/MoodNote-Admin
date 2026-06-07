@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import type { FormEvent } from "react";
+import { Pencil, Trash2 } from "lucide-react";
 import { musicService } from "@/services";
 import type { Artist } from "@/types/music";
 import type { Pagination as PaginationType } from "@/types/user";
@@ -177,7 +178,6 @@ export default function ArtistsTab() {
 						<tr>
 							<th className="music-col--artist-name">Name</th>
 							<th className="music-col--artist-tracks">Tracks</th>
-							<th className="music-col--artist-created">Created</th>
 							<th className="music-col--artist-updated">Updated</th>
 							<th className="music-col--actions" />
 						</tr>
@@ -188,7 +188,7 @@ export default function ArtistsTab() {
 								<tr
 									key={i}
 									className="music-table__skeleton-row">
-									{Array.from({ length: 5 }).map((__, j) => (
+									{Array.from({ length: 4 }).map((__, j) => (
 										<td key={j}>
 											<span className="skeleton" />
 										</td>
@@ -198,7 +198,7 @@ export default function ArtistsTab() {
 						) : artists.length === 0 ? (
 							<tr>
 								<td
-									colSpan={5}
+									colSpan={4}
 									className="music-table__empty">
 									No artists found.
 								</td>
@@ -214,11 +214,6 @@ export default function ArtistsTab() {
 									<td className="music-col--artist-tracks music-table__num">
 										{a.trackCount ?? 0}
 									</td>
-									<td className="music-col--artist-created music-table__date">
-										{a.createdAt
-											? formatDate(a.createdAt)
-											: "—"}
-									</td>
 									<td className="music-col--artist-updated music-table__date">
 										{a.updatedAt
 											? formatDate(a.updatedAt)
@@ -231,14 +226,14 @@ export default function ArtistsTab() {
 												title="Edit"
 												aria-label={`Edit ${a.name}`}
 												onClick={() => openEdit(a)}>
-												✏️
+												<Pencil aria-hidden="true" />
 											</button>
 											<button
 												className="action-btn action-btn--delete"
 												title="Delete"
 												aria-label={`Delete ${a.name}`}
 												onClick={() => setDeleteTarget(a)}>
-												🗑️
+												<Trash2 aria-hidden="true" />
 											</button>
 										</div>
 									</td>

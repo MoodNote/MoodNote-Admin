@@ -279,10 +279,9 @@
 .music-col--genre-tracks { width: 120px; }
 
 /* ── Column width distribution (Artists) ── */
-.music-col--artist-name    { width: auto; }
+.music-col--artist-name    { width: 220px; }
 .music-col--artist-tracks  { width: 120px; }
-.music-col--artist-created { width: 140px; }
-.music-col--artist-updated { width: 140px; }
+.music-col--artist-updated { width: 160px; }
 
 .music-table thead { background: var(--color-bg-subtle); }
 
@@ -338,7 +337,7 @@
 }
 
 .music-section--artists .music-table {
-	min-width: 640px;
+	min-width: 500px;
 }
 
 .music-section--tracks .music-table {
@@ -358,9 +357,22 @@
 .music-page .music-col--popularity { width: 112px; }
 .music-page .music-col--actions { width: 68px; }
 .music-page .music-col--genre-tracks { width: 88px; }
+.music-page .music-col--artist-name { width: 190px; }
 .music-page .music-col--artist-tracks { width: 84px; }
-.music-page .music-col--artist-created { width: 116px; }
-.music-page .music-col--artist-updated { width: 116px; }
+.music-page .music-col--artist-updated { width: 148px; }
+
+.music-col--artist-name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.music-col--artist-name > span {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
 
 .music-page .music-table__actions {
 	gap: var(--sp-1);
@@ -500,16 +512,23 @@
 	border: 1px solid var(--color-border);
 	border-radius: var(--radius-sm);
 	background: none;
+	color: var(--color-text-muted);
 	cursor: pointer;
-	font-size: 13px;
 	transition:
 		background var(--transition-colors),
 		border-color var(--transition-colors),
+		color var(--transition-colors),
 		transform var(--dur-fast) var(--ease-out);
 }
 
-.action-btn--edit:hover { background: var(--color-primary-light); border-color: var(--color-primary); transform: translateY(-1px); }
-.action-btn--delete:hover { background: var(--color-danger-light); border-color: var(--color-danger); transform: translateY(-1px); }
+.action-btn svg {
+	width: 15px;
+	height: 15px;
+	stroke-width: 2;
+}
+
+.action-btn--edit:hover { background: var(--color-primary-light); border-color: var(--color-primary); color: var(--color-primary); transform: translateY(-1px); }
+.action-btn--delete:hover { background: var(--color-danger-light); border-color: var(--color-danger); color: var(--color-danger); transform: translateY(-1px); }
 .action-btn:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
 
 .music-table__skeleton-row td { padding: var(--sp-4) !important; }
