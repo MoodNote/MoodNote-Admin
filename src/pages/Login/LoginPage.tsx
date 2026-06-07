@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/constants";
 import { useAuth } from "@/hooks/useAuth";
+import LogoWhite from "@/assets/Logo_White.png";
 import { authService } from "@/services";
 import { getErrorMessage, isApiError } from "@/utils/error";
 import "./LoginPage.css";
@@ -58,7 +59,11 @@ export default function LoginPage() {
 		<div className="login-page">
 			<div className="login-card">
 				<div className="login-card__header">
-					<span className="login-card__logo">🎵</span>
+					<img
+						className="login-card__logo"
+						src={LogoWhite}
+						alt="MoodNote"
+					/>
 					<h1 className="login-card__title">MoodNote Admin</h1>
 					<p className="login-card__subtitle">
 						Sign in to your account

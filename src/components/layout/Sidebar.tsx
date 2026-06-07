@@ -1,5 +1,6 @@
 import { type ReactNode, useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
+import LogoWhite from "@/assets/Logo_White.png";
 import { ROUTES } from "@/constants";
 import "./Sidebar.css";
 
@@ -59,19 +60,6 @@ const Icons = {
 	chevronRight: (
 		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
 			<polyline points="9 18 15 12 9 6" />
-		</svg>
-	),
-	brandMark: (
-		<svg viewBox="0 0 32 32" fill="none">
-			<defs>
-				<linearGradient id="brand-grad" x1="0" y1="0" x2="1" y2="1">
-					<stop offset="0%" stopColor="hsl(243,75%,72%)" />
-					<stop offset="100%" stopColor="hsl(262,83%,72%)" />
-				</linearGradient>
-			</defs>
-			<circle cx="16" cy="16" r="14" fill="url(#brand-grad)" opacity="0.15" />
-			<path d="M10 20V12l6 5 6-5v8" stroke="url(#brand-grad)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-			<circle cx="22" cy="20" r="2" fill="url(#brand-grad)" />
 		</svg>
 	),
 };
@@ -157,7 +145,11 @@ export default function Sidebar() {
 		<aside className={`sidebar${collapsed ? " sidebar--collapsed" : ""}`}>
 			{/* Brand */}
 			<div className="sidebar__brand">
-				<span className="sidebar__brand-icon">{Icons.brandMark}</span>
+				<img
+					className="sidebar__brand-icon"
+					src={LogoWhite}
+					alt="MoodNote"
+				/>
 				{!collapsed && (
 					<span className="sidebar__brand-name">MoodNote</span>
 				)}
