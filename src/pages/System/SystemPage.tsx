@@ -9,7 +9,7 @@ import {
 	RefreshCw,
 	RotateCcw,
 	Server,
-	Sparkles,
+	// Sparkles,
 	TriangleAlert,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -100,9 +100,9 @@ export default function SystemPage() {
 	const [aiError, setAiError] = useState("");
 	const [aiLastUpdated, setAiLastUpdated] = useState<string | null>(null);
 	const [retryLoading, setRetryLoading] = useState(false);
-	const [reAnalyzeLoading, setReAnalyzeLoading] = useState(false);
-	const [entryId, setEntryId] = useState("");
-	const [entryIdError, setEntryIdError] = useState("");
+	// const [reAnalyzeLoading, setReAnalyzeLoading] = useState(false);
+	// const [entryId, setEntryId] = useState("");
+	// const [entryIdError, setEntryIdError] = useState("");
 	const [retryConfirmOpen, setRetryConfirmOpen] = useState(false);
 
 	const fetchHealth = useCallback(async () => {
@@ -146,6 +146,7 @@ export default function SystemPage() {
 		void fetchAiStats();
 	}, [fetchAiStats]);
 
+	/*
 	const handleReAnalyzeEntry = async (
 		event: React.FormEvent<HTMLFormElement>,
 	) => {
@@ -170,6 +171,7 @@ export default function SystemPage() {
 			setReAnalyzeLoading(false);
 		}
 	};
+	*/
 
 	const handleRetryFailed = async () => {
 		setRetryLoading(true);
@@ -196,7 +198,7 @@ export default function SystemPage() {
 	const memoryUsage = health
 		? getUsagePercent(health.memory.heapUsedMB, health.memory.heapTotalMB)
 		: 0;
-	const isAiActionLoading = retryLoading || reAnalyzeLoading;
+	const isAiActionLoading = retryLoading;
 
 	return (
 		<div className="system-page page-enter">
@@ -409,26 +411,28 @@ export default function SystemPage() {
 
 				{aiError && <p className="ai-ops__error">{aiError}</p>}
 
-				<div className="ai-stats-grid">
-					{AI_STATUS_METRICS.map((metric) => (
-						<div
-							key={metric.label}
-							className={`ai-stat ai-stat--${metric.tone}`}>
-							<span className="ai-stat__label">{metric.label}</span>
-							<strong className="ai-stat__value">
-								{aiLoading
-									? "..."
-									: getAiMetricValue(
-											aiStats,
-											metric.status,
-										).toLocaleString()}
-							</strong>
-						</div>
-					))}
-				</div>
+				<div className="ai-ops__layout">
+					<div className="ai-stats-grid">
+						{AI_STATUS_METRICS.map((metric) => (
+							<div
+								key={metric.label}
+								className={`ai-stat ai-stat--${metric.tone}`}>
+								<span className="ai-stat__label">{metric.label}</span>
+								<strong className="ai-stat__value">
+									{aiLoading
+										? "..."
+										: getAiMetricValue(
+												aiStats,
+												metric.status,
+											).toLocaleString()}
+								</strong>
+							</div>
+						))}
+					</div>
 
-				<div className="ai-actions">
-					<form
+					<div className="ai-actions">
+						{/*
+						<form
 						className="ai-action-card"
 						onSubmit={(event) => void handleReAnalyzeEntry(event)}
 						noValidate>
@@ -489,51 +493,53 @@ export default function SystemPage() {
 							<p className="ai-form__error">{entryIdError}</p>
 						)}
 					</form>
+					*/}
 
-					<div className="ai-action-card ai-action-card--retry">
-						<div className="ai-action-card__head">
-							<span className="ai-action-card__icon ai-action-card__icon--warning">
-								<RotateCcw aria-hidden="true" />
-							</span>
-							<div>
-								<h4 className="ai-action-card__title">
-									Retry failed analyses
-								</h4>
-								<p className="ai-action-card__desc">
-									Queue every entry currently marked as failed.
-								</p>
+						<div className="ai-action-card ai-action-card--retry">
+							<div className="ai-action-card__head">
+								<span className="ai-action-card__icon ai-action-card__icon--warning">
+									<RotateCcw aria-hidden="true" />
+								</span>
+								<div>
+									<h4 className="ai-action-card__title">
+										Retry failed analyses
+									</h4>
+									<p className="ai-action-card__desc">
+										Queue every entry currently marked as failed.
+									</p>
+								</div>
 							</div>
-						</div>
 
-						<div className="ai-retry-summary">
-							<span>Failed entries</span>
-							<strong>
-								{aiLoading
-									? "..."
-									: getAiMetricValue(aiStats, "FAILED").toLocaleString()}
-							</strong>
-						</div>
+							<div className="ai-retry-summary">
+								<span>Failed entries</span>
+								<strong>
+									{aiLoading
+										? "..."
+										: getAiMetricValue(aiStats, "FAILED").toLocaleString()}
+								</strong>
+							</div>
 
-						<button
-							type="button"
-							className="btn btn--outline btn--sm ai-retry-btn"
-							onClick={() => setRetryConfirmOpen(true)}
-							disabled={isAiActionLoading}>
-							{retryLoading ? (
-								<>
-									<span className="spinner" />
-									Queueing...
-								</>
-							) : (
-								<>
-									<RotateCcw
-										className="btn__icon"
-										aria-hidden="true"
-									/>
-									Retry failed
-								</>
-							)}
-						</button>
+							<button
+								type="button"
+								className="btn btn--outline btn--sm ai-retry-btn"
+								onClick={() => setRetryConfirmOpen(true)}
+								disabled={isAiActionLoading}>
+								{retryLoading ? (
+									<>
+										<span className="spinner" />
+										Queueing...
+									</>
+								) : (
+									<>
+										<RotateCcw
+											className="btn__icon"
+											aria-hidden="true"
+										/>
+										Retry failed
+									</>
+								)}
+							</button>
+						</div>
 					</div>
 				</div>
 			</section>

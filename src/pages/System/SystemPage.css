@@ -355,11 +355,18 @@
 	margin-bottom: 0;
 }
 
+.ai-ops__layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+	gap: var(--sp-4);
+	align-items: stretch;
+}
+
 .ai-stats-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+	grid-template-columns: repeat(3, minmax(0, 1fr));
 	gap: var(--sp-3);
-	margin-bottom: var(--sp-5);
+	margin-bottom: 0;
 }
 
 .ai-stat {
@@ -405,7 +412,7 @@
 
 .ai-actions {
 	display: grid;
-	grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+	grid-template-columns: 1fr;
 	gap: var(--sp-4);
 	align-items: stretch;
 }
@@ -536,8 +543,13 @@
 }
 
 @media (max-width: 840px) {
+	.ai-ops__layout,
 	.ai-actions {
 		grid-template-columns: 1fr;
+	}
+
+	.ai-stats-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
 
@@ -562,6 +574,7 @@
 	}
 
 	.ai-stats-grid,
+	.ai-ops__layout,
 	.ai-actions,
 	.ai-form__row {
 		grid-template-columns: 1fr;
