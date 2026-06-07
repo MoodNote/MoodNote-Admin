@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import type { ChangeEvent, FormEvent } from "react";
+import type { FormEvent } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { musicService } from "@/services";
 import type {
@@ -15,6 +15,8 @@ import { notifySuccess, notifyError } from "@/utils/toast";
 import Modal from "@/components/Modal";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Pagination from "@/components/Pagination";
+import ArtistMultiSelect from "@/components/ArtistMultiSelect/ArtistMultiSelect";
+import GenreMultiSelect from "@/components/GenreMultiSelect/GenreMultiSelect";
 
 
 interface ModalState {
@@ -40,8 +42,8 @@ interface TrackForm {
 	valence: string;
 	tempo: string;
 	lyrics: string;
-	artistIds: string[];
-	genreIds: string[];
+	artists: Artist[];
+	genres: Genre[];
 }
 
 const EMPTY_FORM: TrackForm = {
@@ -61,8 +63,8 @@ const EMPTY_FORM: TrackForm = {
 	valence: "",
 	tempo: "",
 	lyrics: "",
-	artistIds: [],
-	genreIds: [],
+	artists: [],
+	genres: [],
 };
 
 function formatDurationMs(durationMs: number | null): string {
@@ -107,8 +109,14 @@ function mapTrackToForm(track: Track): TrackForm {
 		valence: track.valence === null ? "" : String(track.valence),
 		tempo: track.tempo === null ? "" : String(track.tempo),
 		lyrics: track.lyrics ?? "",
-		artistIds: track.artists.map((artist) => artist.id),
-		genreIds: track.genres.map((genre) => genre.id),
+		artists: track.artists.map((artist) => ({
+			id: artist.id,
+			name: artist.name,
+		})),
+		genres: track.genres.map((genre) => ({
+			id: genre.id,
+			name: genre.name,
+		})),
 	};
 }
 
@@ -131,8 +139,8 @@ function buildCreatePayload(form: TrackForm): CreateTrackPayload {
 	const payload: CreateTrackPayload = {
 		trackName: form.trackName.trim(),
 		isExplicit: form.isExplicit,
-		artistIds: form.artistIds,
-		genreIds: form.genreIds,
+		artistIds: form.artists.map((artist) => artist.id),
+		genreIds: form.genres.map((genre) => genre.id),
 	};
 
 	const albumName = form.albumName.trim();
@@ -186,8 +194,8 @@ function buildUpdatePayload(form: TrackForm): UpdateTrackPayload {
 	const payload: UpdateTrackPayload = {
 		trackName: form.trackName.trim(),
 		isExplicit: form.isExplicit,
-		artistIds: form.artistIds,
-		genreIds: form.genreIds,
+		artistIds: form.artists.map((artist) => artist.id),
+		genreIds: form.genres.map((genre) => genre.id),
 	};
 
 	const albumName = form.albumName.trim();
@@ -242,7 +250,7 @@ function getFormValidationError(form: TrackForm): string | null {
 		return "Track name must be 300 characters or fewer.";
 	if (form.albumName.trim().length > 300)
 		return "Album name must be 300 characters or fewer.";
-	if (form.artistIds.length === 0) return "At least one artist is required.";
+	if (form.artists.length === 0) return "At least one artist is required.";
 
 	const popularity = parseOptionalInteger(form.popularity);
 	if (
@@ -293,7 +301,6 @@ export default function TracksTab() {
 
 	// For dropdowns in filters & modal
 	const [allGenres, setAllGenres] = useState<Genre[]>([]);
-	const [allArtists, setAllArtists] = useState<Artist[]>([]);
 
 	const [modal, setModal] = useState<ModalState>({ open: false, item: null });
 	const [form, setForm] = useState<TrackForm>(EMPTY_FORM);
@@ -330,12 +337,11 @@ export default function TracksTab() {
 
 	const fetchDropdownData = async () => {
 		try {
-			const [genresResult, artistsResult] = await Promise.all([
-				musicService.getGenres({ page: 1, limit: 100 }),
-				musicService.getArtists({ page: 1, limit: 100 }),
-			]);
+			const genresResult = await musicService.getGenres({
+				page: 1,
+				limit: 100,
+			});
 			setAllGenres(genresResult.genres);
-			setAllArtists(artistsResult.artists);
 		} catch {
 			// Non-critical; dropdowns simply won't populate
 		}
@@ -434,17 +440,6 @@ export default function TracksTab() {
 		} finally {
 			setDeleting(false);
 		}
-	};
-
-	const handleMultiSelectChange = (
-		e: ChangeEvent<HTMLSelectElement>,
-		key: "artistIds" | "genreIds",
-	) => {
-		const values = Array.from(
-			e.target.selectedOptions,
-			(option) => option.value,
-		);
-		setForm((prev) => ({ ...prev, [key]: values }));
 	};
 
 	return (
@@ -771,48 +766,30 @@ export default function TracksTab() {
 							<label
 								className="music-modal__label"
 								htmlFor="track-artists">
-								Artists * (hold Ctrl/Cmd for multi-select)
+								Artists *
 							</label>
-							<select
-								id="track-artists"
-								multiple
-								className="music-modal__select music-modal__select--multi"
-								value={form.artistIds}
-								onChange={(e) =>
-									handleMultiSelectChange(e, "artistIds")
-								}>
-								{allArtists.map((artist) => (
-									<option
-										key={artist.id}
-										value={artist.id}>
-										{artist.name}
-									</option>
-								))}
-							</select>
+							<ArtistMultiSelect
+								inputId="track-artists"
+								value={form.artists}
+								onChange={(artists) =>
+									setForm((f) => ({ ...f, artists }))
+								}
+							/>
 						</div>
 
 						<div className="music-modal__group">
 							<label
 								className="music-modal__label"
 								htmlFor="track-genres">
-								Genres (hold Ctrl/Cmd for multi-select)
+								Genres
 							</label>
-							<select
-								id="track-genres"
-								multiple
-								className="music-modal__select music-modal__select--multi"
-								value={form.genreIds}
-								onChange={(e) =>
-									handleMultiSelectChange(e, "genreIds")
-								}>
-								{allGenres.map((genre) => (
-									<option
-										key={genre.id}
-										value={genre.id}>
-										{genre.name}
-									</option>
-								))}
-							</select>
+							<GenreMultiSelect
+								inputId="track-genres"
+								value={form.genres}
+								onChange={(genres) =>
+									setForm((f) => ({ ...f, genres }))
+								}
+							/>
 						</div>
 					</div>
 

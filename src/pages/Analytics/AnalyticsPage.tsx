@@ -15,10 +15,7 @@ import {
 } from "recharts";
 import { dashboardService } from "@/services";
 import type { AdminStatsData, GrowthData, GrowthPeriod } from "@/types/stats";
-import type {
-	EmotionDistributionItem,
-	TopKeyword,
-} from "@/types/stats";
+import type { EmotionDistributionItem, TopKeyword } from "@/types/stats";
 import { formatCompact, formatDateTime } from "@/utils/format";
 import "./AnalyticsPage.css";
 
@@ -79,7 +76,9 @@ function getEmotionColor(emotion: string): string {
 
 function ChartSkeleton({ bars = 12 }: { bars?: number }) {
 	return (
-		<div className="analytics-chart-skeleton" aria-hidden="true">
+		<div
+			className="analytics-chart-skeleton"
+			aria-hidden="true">
 			{Array.from({ length: bars }).map((_, i) => (
 				<span
 					key={i}
@@ -94,9 +93,7 @@ function ChartSkeleton({ bars = 12 }: { bars?: number }) {
 
 function EmotionChart({ data }: { data: EmotionDistributionItem[] }) {
 	if (data.length === 0) {
-		return (
-			<p className="analytics-empty">No emotion data available.</p>
-		);
+		return <p className="analytics-empty">No emotion data available.</p>;
 	}
 
 	const chartData = data.map((item) => ({
@@ -109,7 +106,9 @@ function EmotionChart({ data }: { data: EmotionDistributionItem[] }) {
 		<div
 			className="analytics-chart-frame"
 			style={{ height: `${Math.max(220, chartData.length * 40)}px` }}>
-			<ResponsiveContainer width="100%" height="100%">
+			<ResponsiveContainer
+				width="100%"
+				height="100%">
 				<BarChart
 					data={chartData}
 					layout="vertical"
@@ -144,9 +143,15 @@ function EmotionChart({ data }: { data: EmotionDistributionItem[] }) {
 							"Entries",
 						]}
 					/>
-					<Bar dataKey="count" radius={[0, 8, 8, 0]} barSize={14}>
+					<Bar
+						dataKey="count"
+						radius={[0, 8, 8, 0]}
+						barSize={14}>
 						{chartData.map((item) => (
-							<Cell key={item.name} fill={item.color} />
+							<Cell
+								key={item.name}
+								fill={item.color}
+							/>
 						))}
 					</Bar>
 				</BarChart>
@@ -200,10 +205,17 @@ function GrowthChart({
 				<p className="analytics-empty">No growth data available.</p>
 			) : (
 				<div className="analytics-chart-frame analytics-chart-frame--growth">
-					<ResponsiveContainer width="100%" height="100%">
+					<ResponsiveContainer
+						width="100%"
+						height="100%">
 						<AreaChart
 							data={chartData}
-							margin={{ top: 8, right: 14, left: -14, bottom: 0 }}>
+							margin={{
+								top: 8,
+								right: 14,
+								left: -14,
+								bottom: 0,
+							}}>
 							<defs>
 								<linearGradient
 									id={`growthGradient-${period}`}
@@ -295,7 +307,9 @@ function UserStatusChart({
 		return (
 			<div className="analytics-panel analytics-panel--status">
 				<h3 className="analytics-panel__title">User Status</h3>
-				<p className="analytics-empty">No user status data available.</p>
+				<p className="analytics-empty">
+					No user status data available.
+				</p>
 			</div>
 		);
 	}
@@ -318,7 +332,9 @@ function UserStatusChart({
 		<div className="analytics-panel analytics-panel--status">
 			<h3 className="analytics-panel__title">User Status</h3>
 			<div className="analytics-chart-frame analytics-chart-frame--donut">
-				<ResponsiveContainer width="100%" height="100%">
+				<ResponsiveContainer
+					width="100%"
+					height="100%">
 					<PieChart>
 						<Pie
 							data={chartData}
@@ -330,7 +346,10 @@ function UserStatusChart({
 							stroke="var(--color-bg-card)"
 							strokeWidth={3}>
 							{chartData.map((item) => (
-								<Cell key={item.name} fill={item.color} />
+								<Cell
+									key={item.name}
+									fill={item.color}
+								/>
 							))}
 						</Pie>
 						<Tooltip
@@ -363,7 +382,9 @@ function UserStatusChart({
 			</div>
 			<div className="user-status-legend">
 				{chartData.map((item) => (
-					<div key={item.name} className="user-status-legend__item">
+					<div
+						key={item.name}
+						className="user-status-legend__item">
 						<span
 							className="user-status-legend__dot"
 							style={{ background: item.color }}
@@ -379,9 +400,7 @@ function UserStatusChart({
 
 function KeywordChart({ data }: { data: TopKeyword[] }) {
 	if (data.length === 0) {
-		return (
-			<p className="analytics-empty">No keyword data available.</p>
-		);
+		return <p className="analytics-empty">No keyword data available.</p>;
 	}
 
 	const chartData = data.slice(0, 10).map((kw) => ({
@@ -393,7 +412,9 @@ function KeywordChart({ data }: { data: TopKeyword[] }) {
 		<div
 			className="analytics-chart-frame"
 			style={{ height: `${Math.max(240, chartData.length * 34)}px` }}>
-			<ResponsiveContainer width="100%" height="100%">
+			<ResponsiveContainer
+				width="100%"
+				height="100%">
 				<BarChart
 					data={chartData}
 					layout="vertical"
@@ -542,7 +563,9 @@ export default function AnalyticsPage() {
 							</span>
 						</div>
 						<div className="summary-card">
-							<span className="summary-card__label">Inactive</span>
+							<span className="summary-card__label">
+								Inactive
+							</span>
 							<span className="summary-card__value">
 								{loading
 									? "—"
@@ -574,7 +597,9 @@ export default function AnalyticsPage() {
 							</span>
 						</div>
 						<div className="summary-card">
-							<span className="summary-card__label">New today</span>
+							<span className="summary-card__label">
+								New today
+							</span>
 							<span className="summary-card__value">
 								{loading
 									? "—"
@@ -600,7 +625,9 @@ export default function AnalyticsPage() {
 
 			<section className="analytics-section">
 				<div className="analytics-section__header">
-					<h3 className="analytics-section__title">Content Analytics</h3>
+					<h3 className="analytics-section__title">
+						Content Analytics
+					</h3>
 				</div>
 				<div className="analytics-grid">
 					{/* Summary */}
@@ -624,7 +651,9 @@ export default function AnalyticsPage() {
 							</span>
 						</div>
 						<div className="summary-card">
-							<span className="summary-card__label">This week</span>
+							<span className="summary-card__label">
+								This week
+							</span>
 							<span className="summary-card__value">
 								{loading
 									? "—"
@@ -646,11 +675,15 @@ export default function AnalyticsPage() {
 							</span>
 						</div>
 						<div className="summary-card">
-							<span className="summary-card__label">Analyzed</span>
+							<span className="summary-card__label">
+								Analyzed
+							</span>
 							<span className="summary-card__value">
 								{loading
 									? "—"
-									: formatCompact(stats?.entries.analyzed ?? 0)}
+									: formatCompact(
+											stats?.entries.analyzed ?? 0,
+										)}
 							</span>
 						</div>
 					</div>
@@ -665,12 +698,12 @@ export default function AnalyticsPage() {
 							/>
 						</div>
 
-						<div className="analytics-panel">
+						{/* <div className="analytics-panel">
 							<h3 className="analytics-panel__title">
 								Top Keywords
 							</h3>
 							<KeywordChart data={stats?.topKeywords ?? []} />
-						</div>
+						</div> */}
 					</div>
 				</div>
 			</section>
